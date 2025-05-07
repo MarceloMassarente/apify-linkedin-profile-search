@@ -1,0 +1,77 @@
+{
+  "title": "Search LinkedIn Profiles",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "searchQueries": {
+      "title": "Search queries",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Queries to search LinkedIn profile. The same query as you would use in the LinkedIn search bar.",
+      "prefill": ["Michael"]
+    },
+
+    "locations": {
+      "title": "Locations Filter",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn locations. Example: `San Francisco Bay Area`.",
+      "prefill": ["New York", "California"]
+    },
+    "geoIds": {
+      "title": "Geo IDs Filter",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn geo IDs. Example: `103644278`."
+    },
+
+    "companyUrls": {
+      "title": "Company URLs Filter",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn company URLs. Example: `https://www.linkedin.com/company/google`.",
+      "prefill": ["https://www.linkedin.com/company/google"]
+    },
+    "companyPublicIdentifiers": {
+      "title": "Company Public Identifiers Filter (last part in the URL)",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn company public identifiers. Example: `google`.",
+      "prefill": ["microsoft"]
+    },
+    "companyIds": {
+      "title": "Company IDs Filter",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn company IDs. Example: `1441`."
+    },
+
+    "schoolUrls": {
+      "title": "School URLs Filter",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn school URLs. Example: `https://www.linkedin.com/school/stanford-university`.",
+      "prefill": ["https://www.linkedin.com/school/stanford-university"]
+    },
+    "schoolPublicIdentifiers": {
+      "title": "School Public Identifiers Filter (last part in the URL)",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn school public identifiers. Example: `stanford-university`.",
+      "prefill": ["MIT"]
+    },
+    "schoolIds": {
+      "title": "School IDs Filter",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn school IDs. Example: `1234`."
+    },
+
+    "maxItems": {
+      "title": "Maximum number of profiles to scrape per each search query input",
+      "type": "integer",
+      "description": "Maximum number of profiles to scrape per each search query input.",
+      "prefill": 15
+    }
+  }
+}
