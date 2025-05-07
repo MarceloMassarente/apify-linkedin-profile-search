@@ -1,6 +1,6 @@
 ## LinkedIn Posts Search scraper
 
-Our powerful tool helps you search profile by name and filter by companies, locations without compromising security or violating platform policies.
+Our powerful tool helps you search LinkedIn Profiles by name and filter by companies, locations without compromising security or violating platform policies.
 
 ### Key Benefits
 
@@ -8,14 +8,14 @@ Our powerful tool helps you search profile by name and filter by companies, loca
 - Low pricing: $4 per 1k profiles.
 - Fast response times deliver data in seconds 🚀
 - No caching, fresh data.
-- Concurrency: each actor works scraping profiles at a time.
+- Concurrency: each actor works scraping 5 profiles at a time.
 
 ## How It Works
 
 - (required) List of search queries / names (e.g., `Michael`, `William`)
-- (optionally) List of LinkedIn locations where they currently live (e.g., `New York`, `San Francisco`, `London`)
+- (optionally) List of locations where they currently live (e.g., `New York`, `San Francisco`, `London`)
 - (optionally) List of LinkedIn Company URLs where they currently work (e.g., `google`, `meta`, `amazon`)
-- (optionally) List of LinkedIn Schools URLs where they studied (e.g., `stanford-university`, `MIT`)
+- (optionally) List of LinkedIn School URLs where they studied (e.g., `stanford-university`, `MIT`)
 
 Other params (optionally):
 
