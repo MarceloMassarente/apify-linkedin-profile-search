@@ -1,4 +1,4 @@
-## LinkedIn Posts Search scraper
+## LinkedIn Profile Search Mass scraper
 
 Our powerful tool helps you search LinkedIn Profiles by name and filter by companies, locations without compromising security or violating platform policies.
 
@@ -30,8 +30,6 @@ Other params (optionally):
 - Skills and endorsements
 - Recommendations and connections
 - Certifications and projects
-
-Up to 1000 posts per one actor run.
 
 ### Sample output data
 
