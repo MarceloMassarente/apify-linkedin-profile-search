@@ -90,8 +90,6 @@ if (maxItems > 1000) {
   maxItems = 1000;
 }
 
-const scrapedProfiles: Record<string, boolean> = {};
-
 for (const searchQuery of input.searchQueries) {
   await scraper.scrapeProfiles({
     query: {
@@ -101,10 +99,6 @@ for (const searchQuery of input.searchQueries) {
     outputType: 'callback',
     onItemScraped: async ({ item }) => {
       console.info(`Scraped profile ${item.publicIdentifier}`);
-      if (scrapedProfiles[item.publicIdentifier]) {
-        return;
-      }
-      scrapedProfiles[item.publicIdentifier] = true;
       void Actor.pushData(item);
     },
     overrideConcurrency: 5,
