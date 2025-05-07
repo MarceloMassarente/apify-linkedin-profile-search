@@ -84,12 +84,6 @@ const scraper = createLinkedinScraper({
   },
 });
 
-let maxItems = Number(input.maxItems) || 1000;
-if (maxItems > 1000) {
-  console.warn(`Max items is limited to 1000. Setting it to 1000.`);
-  maxItems = 1000;
-}
-
 for (const searchQuery of input.searchQueries) {
   await scraper.scrapeProfiles({
     query: {
@@ -102,7 +96,7 @@ for (const searchQuery of input.searchQueries) {
       void Actor.pushData(item);
     },
     overrideConcurrency: 5,
-    maxItems,
+    maxItems: Number(input.maxItems) || undefined,
   });
 }
 

@@ -19,7 +19,7 @@ Our powerful tool helps you search LinkedIn Profiles by name and filter by compa
 
 Other params (optionally):
 
-- `maxItems` - Maximum number of profiles to scrape per each search query. If you set to 0, it will scrape all available pages or up to 100 pages per search query. Maximum is 1000 profiles per one actor run.
+- `maxItems` - Maximum number of profiles to scrape per each search query. If you set to 0, it will scrape all available pages or up to 100 pages per search query.
 
 ### Data You'll Receive
 
