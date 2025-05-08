@@ -74,15 +74,26 @@ const query: {
   query.location.push(location);
 });
 
-const USER_ID = Actor.getEnv().userId;
+const { actorId, actorRunId, actorBuildId, userId, actorMaxPaidDatasetItems, memoryMbytes } =
+  Actor.getEnv();
 
 const scraper = createLinkedinScraper({
   apiKey: process.env.HARVESTAPI_TOKEN!,
   baseUrl: process.env.HARVESTAPI_URL || 'https://api.harvest-api.com',
   addHeaders: {
-    'x-apify-userid': USER_ID!,
+    'x-apify-userid': userId!,
+    'x-apify-actor-id': actorId!,
+    'x-apify-actor-run-id': actorRunId!,
+    'x-apify-actor-build-id': actorBuildId!,
+    'x-apify-memory-mbytes': String(memoryMbytes),
+    'x-apify-actor-max-paid-dataset-items': String(actorMaxPaidDatasetItems) || '0',
   },
 });
+
+let maxItems = Number(input.maxItems) || actorMaxPaidDatasetItems || undefined;
+if (actorMaxPaidDatasetItems && maxItems && maxItems > actorMaxPaidDatasetItems) {
+  maxItems = actorMaxPaidDatasetItems;
+}
 
 for (const searchQuery of input.searchQueries) {
   await scraper.scrapeProfiles({
@@ -95,8 +106,8 @@ for (const searchQuery of input.searchQueries) {
       console.info(`Scraped profile ${item.publicIdentifier}`);
       void Actor.pushData(item);
     },
-    overrideConcurrency: 5,
-    maxItems: Number(input.maxItems) || undefined,
+    overrideConcurrency: 6,
+    maxItems,
   });
 }
 
