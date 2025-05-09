@@ -104,7 +104,7 @@ for (const searchQuery of input.searchQueries) {
     outputType: 'callback',
     onItemScraped: async ({ item }) => {
       console.info(`Scraped profile ${item.publicIdentifier}`);
-      void Actor.pushData(item);
+      await Actor.pushData(item);
     },
     overrideConcurrency: 6,
     maxItems,
