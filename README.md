@@ -8,11 +8,11 @@ Our powerful tool helps you search LinkedIn Profiles by name and filter by compa
 - Low pricing: $4 per 1k profiles.
 - Fast response times deliver data in seconds 🚀
 - No caching, fresh data.
-- Concurrency: each actor works scraping 5 profiles at a time.
+- Concurrency: each actor works scraping 6 profiles at a time.
 
 ## How It Works
 
-- (required) List of search queries / names (e.g., `Michael`, `William`)
+- (required) List of search queries / names (e.g., `Marketing Specialist`, `Customer Success Manager`)
 - (optionally) List of locations where they currently live (e.g., `New York`, `San Francisco`, `London`)
 - (optionally) List of LinkedIn Company URLs where they currently work (e.g., `google`, `meta`, `amazon`)
 - (optionally) List of LinkedIn School URLs where they studied (e.g., `stanford-university`, `MIT`)
