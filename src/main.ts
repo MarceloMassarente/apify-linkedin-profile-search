@@ -15,9 +15,11 @@ await Actor.init();
 
 interface Input {
   searchQueries?: string[];
+  company?: string[];
   companyIds?: string[];
   companyPublicIdentifiers?: string[];
   companyUrls?: string[];
+  school?: string[];
   schoolIds?: string[];
   schoolPublicIdentifiers?: string[];
   schoolUrls?: string[];
@@ -33,46 +35,24 @@ if (!input.searchQueries?.length)
   throw new Error('Search queries: at least one query is required!');
 
 const query: {
+  company: string[];
   companyId: string[];
   companyUniversalName: string[];
+  school: string[];
   schoolId: string[];
   schoolUniversalName: string[];
   geoId: string[];
   location: string[];
 } = {
-  companyId: [],
-  companyUniversalName: [],
-  schoolId: [],
-  schoolUniversalName: [],
-  geoId: [],
-  location: [],
+  company: input.company || [],
+  companyId: input.companyIds || [],
+  companyUniversalName: [...(input.companyPublicIdentifiers || []), ...(input.companyUrls || [])],
+  school: input.school || [],
+  schoolId: input.schoolIds || [],
+  schoolUniversalName: [...(input.schoolPublicIdentifiers || []), ...(input.schoolUrls || [])],
+  geoId: input.geoIds || [],
+  location: input.locations || [],
 };
-
-(input.companyPublicIdentifiers || []).forEach((companyUniversalName) => {
-  query.companyUniversalName.push(companyUniversalName);
-});
-(input.companyIds || []).forEach((companyId) => {
-  query.companyId.push(companyId);
-});
-(input.companyUrls || []).forEach((companyUrl) => {
-  query.companyUniversalName.push(companyUrl);
-});
-
-(input.schoolIds || []).forEach((schoolId) => {
-  query.schoolId.push(schoolId);
-});
-(input.schoolPublicIdentifiers || []).forEach((profilePublicIdentifier) => {
-  query.schoolUniversalName.push(profilePublicIdentifier);
-});
-(input.schoolUrls || []).forEach((schoolUrl) => {
-  query.schoolUniversalName.push(schoolUrl);
-});
-(input.geoIds || []).forEach((geoId) => {
-  query.geoId.push(geoId);
-});
-(input.locations || []).forEach((location) => {
-  query.location.push(location);
-});
 
 const { actorId, actorRunId, actorBuildId, userId, actorMaxPaidDatasetItems, memoryMbytes } =
   Actor.getEnv();
