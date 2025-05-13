@@ -26,7 +26,7 @@ interface Input {
   geoIds?: string[];
   locations?: string[];
   maxItems?: number;
-  scrapeAll?: boolean;
+  outputHidden?: boolean;
 }
 // Structure of input is defined in input_schema.json
 const input = await Actor.getInput<Input>();
@@ -92,7 +92,7 @@ for (const searchQuery of input.searchQueries) {
         if (item?.publicIdentifier)
           return scraper.getProfile({ publicIdentifier: item.publicIdentifier });
 
-        if (input.scrapeAll) {
+        if (input.outputHidden) {
           await Actor.pushData(item);
         }
         return { skipped: true };
