@@ -1,7 +1,7 @@
 // Apify SDK - toolkit for building Apify Actors (Read more at https://docs.apify.com/sdk/js/).
 import { Actor } from 'apify';
 import { config } from 'dotenv';
-import { createLinkedinScraper } from '@harvestapi/scraper';
+import { createLinkedinScraper, Profile } from '@harvestapi/scraper';
 
 config();
 
@@ -84,7 +84,7 @@ for (const searchQuery of input.searchQueries) {
     },
     outputType: 'callback',
     onItemScraped: async ({ item }) => {
-      console.info(`Scraped profile ${item.publicIdentifier}`);
+      console.info(`Scraped profile ${item.publicIdentifier || item?.id}`);
       await Actor.pushData(item);
     },
     optionsOverride: {
@@ -92,8 +92,14 @@ for (const searchQuery of input.searchQueries) {
         if (item?.publicIdentifier)
           return scraper.getProfile({ publicIdentifier: item.publicIdentifier });
 
-        if (input.outputHidden) {
-          await Actor.pushData(item);
+        if (input.outputHidden && item.id) {
+          return {
+            element: item as Profile,
+            entityId: item.id,
+            status: 200,
+            error: null,
+            query: {},
+          };
         }
         return { skipped: true };
       },
