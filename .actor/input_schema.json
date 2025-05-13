@@ -88,8 +88,13 @@
       "title": "School IDs Filter",
       "type": "array",
       "editor": "stringList",
-      "sectionCaption": "Advanced",
       "description": "Filter Profiles by these LinkedIn school IDs. Example: `1234`."
+    },
+    "outputHidden": {
+      "title": "Output hidden items",
+      "type": "boolean",
+      "description": "If true, it will push into result all hidden profiles by LinkedIn. LinkedIn requires having common connections in order to expose profile URLs in the profile search. This will scrape profiles without URLs",
+      "default": false
     }
   }
 }

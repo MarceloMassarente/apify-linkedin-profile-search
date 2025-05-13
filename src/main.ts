@@ -26,6 +26,7 @@ interface Input {
   geoIds?: string[];
   locations?: string[];
   maxItems?: number;
+  scrapeAll?: boolean;
 }
 // Structure of input is defined in input_schema.json
 const input = await Actor.getInput<Input>();
@@ -85,6 +86,17 @@ for (const searchQuery of input.searchQueries) {
     onItemScraped: async ({ item }) => {
       console.info(`Scraped profile ${item.publicIdentifier}`);
       await Actor.pushData(item);
+    },
+    optionsOverride: {
+      fetchItem: async ({ item }) => {
+        if (item?.publicIdentifier)
+          return scraper.getProfile({ publicIdentifier: item.publicIdentifier });
+
+        if (input.scrapeAll) {
+          await Actor.pushData(item);
+        }
+        return { skipped: true };
+      },
     },
     overrideConcurrency: 6,
     maxItems,
