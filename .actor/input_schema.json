@@ -8,7 +8,7 @@
       "type": "array",
       "editor": "stringList",
       "description": "Queries to search LinkedIn profile. The same query as you would use in the LinkedIn search bar.",
-      "prefill": ["Software Engineer", "Data Scientist"]
+      "prefill": ["Michael", "Mark"]
     },
 
     "locations": {
@@ -16,13 +16,15 @@
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn locations. Example: `San Francisco`",
-      "prefill": ["New York", "California"]
+      "prefill": ["New York", "California"],
+      "maxItems": 10
     },
     "company": {
       "title": "Company Filter",
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn companies. Provide full URLs or identifiers (last part in the URL)",
+      "maxItems": 10,
       "prefill": [
         "https://www.linkedin.com/company/google",
         "https://www.linkedin.com/company/microsoft"
@@ -33,6 +35,7 @@
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn schools. Example: `Stanford University`.",
+      "maxItems": 10,
       "prefill": [
         "https://www.linkedin.com/school/stanford-university",
         "https://www.linkedin.com/school/mit"
@@ -50,6 +53,7 @@
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn geo IDs. Example: `103644278`.",
+      "maxItems": 10,
       "sectionCaption": "Advanced"
     },
 
@@ -57,6 +61,7 @@
       "title": "Company URLs Filter",
       "type": "array",
       "editor": "stringList",
+      "maxItems": 10,
       "description": "Filter Profiles by these LinkedIn company URLs. Example: `https://www.linkedin.com/company/google`."
     },
     "companyPublicIdentifiers": {
@@ -69,6 +74,7 @@
       "title": "Company IDs Filter",
       "type": "array",
       "editor": "stringList",
+      "maxItems": 10,
       "description": "Filter Profiles by these LinkedIn company IDs. Example: `1441`."
     },
 
@@ -76,24 +82,27 @@
       "title": "School URLs Filter",
       "type": "array",
       "editor": "stringList",
+      "maxItems": 10,
       "description": "Filter Profiles by these LinkedIn school URLs. Example: `https://www.linkedin.com/school/stanford-university`."
     },
     "schoolPublicIdentifiers": {
       "title": "School Public Identifiers Filter (last part in the URL)",
       "type": "array",
       "editor": "stringList",
+      "maxItems": 10,
       "description": "Filter Profiles by these LinkedIn school public identifiers. Example: `stanford-university`."
     },
     "schoolIds": {
       "title": "School IDs Filter",
       "type": "array",
       "editor": "stringList",
+      "maxItems": 10,
       "description": "Filter Profiles by these LinkedIn school IDs. Example: `1234`."
     },
     "outputHidden": {
-      "title": "Output hidden items",
+      "title": "Output un-scrapable items",
       "type": "boolean",
-      "description": "If true, it will push into result all hidden profiles by LinkedIn. LinkedIn requires having common connections in order to expose profile URLs in the profile search. This will scrape profiles without URLs",
+      "description": "If true, it will push into results all hidden by LinkedIn profile results. LinkedIn requires having common connections in order to expose profile URLs in the profile search, so our scraper usually detects a lot of these hidden profiles. This setting will output all profile items from the search without URLs and profile details",
       "default": false
     }
   }

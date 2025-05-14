@@ -12,7 +12,7 @@ Our powerful tool helps you search LinkedIn Profiles by name and filter by compa
 
 ## How It Works
 
-- (required) List of search queries / names (e.g., `Marketing Specialist`, `Customer Success Manager`)
+- (required) List of search queries / names.
 - (optionally) List of locations where they currently live (e.g., `New York`, `San Francisco`, `London`)
 - (optionally) List of LinkedIn Company URLs where they currently work (e.g., `google`, `meta`, `amazon`)
 - (optionally) List of LinkedIn School URLs where they studied (e.g., `stanford-university`, `MIT`)
