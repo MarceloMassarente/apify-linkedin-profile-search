@@ -7,7 +7,7 @@
       "title": "Search queries",
       "type": "array",
       "editor": "stringList",
-      "description": "Queries to search LinkedIn profile. The same query as you would use in the LinkedIn search bar.",
+      "description": "Queries to search LinkedIn profiles by name.",
       "prefill": ["Michael", "Mark"]
     },
 
