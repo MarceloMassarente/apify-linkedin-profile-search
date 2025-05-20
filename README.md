@@ -21,6 +21,9 @@ Other params (optionally):
 
 - `maxItems` - Maximum number of profiles to scrape per each search query. If you set to 0, it will scrape all available pages or up to 100 pages per search query.
 
+**Right now it works for searches by name**.
+**If you want to search by a job title or other query**, it will find a small number of profiles, due to LinkedIn requires having common connections in order to expose profile URLs in the profile search, so scraper will get mostly anonymous "LinkedIn Member" in the search. It's possible to solve the issue, please let us know if you want us to add search by job title feature.
+
 ### Data You'll Receive
 
 - Profile summary and headline
