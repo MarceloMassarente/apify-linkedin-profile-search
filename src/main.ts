@@ -1,65 +1,63 @@
 // Apify SDK - toolkit for building Apify Actors (Read more at https://docs.apify.com/sdk/js/).
+import { createLinkedinScraper, ScrapeLinkedinSalesNavLeadsParams } from '@harvestapi/scraper';
 import { Actor } from 'apify';
 import { config } from 'dotenv';
-import { createLinkedinScraper, Profile } from '@harvestapi/scraper';
 
 config();
-
-// this is ESM project, and as such, it requires you to specify extensions in your relative imports
-// read more about this here: https://nodejs.org/docs/latest-v18.x/api/esm.html#mandatory-file-extensions
-// note that we need to use `.js` even when inside TS files
-// import { router } from './routes.js';
 
 // The init() call configures the Actor for its environment. It's recommended to start every Actor with an init().
 await Actor.init();
 
 interface Input {
+  profileScraperMode: 'Short ($3 per 1k)' | 'Full ($7 per 1k)';
   searchQueries?: string[];
-  company?: string[];
-  companyIds?: string[];
-  companyPublicIdentifiers?: string[];
-  companyUrls?: string[];
-  school?: string[];
-  schoolIds?: string[];
-  schoolPublicIdentifiers?: string[];
-  schoolUrls?: string[];
-  geoIds?: string[];
+  currentCompanies?: string[];
+  pastCompanies?: string[];
+  currentJobTitles?: string[];
+  pastJobTitles?: string[];
+  firstNames?: string[];
+  lastNames?: string[];
+  schools?: string[];
   locations?: string[];
   maxItems?: number;
-  outputHidden?: boolean;
 }
 // Structure of input is defined in input_schema.json
 const input = await Actor.getInput<Input>();
 if (!input) throw new Error('Input is missing!');
-input.searchQueries = (input.searchQueries || []).filter((q) => q && !!q.trim());
-if (!input.searchQueries?.length) {
-  console.error('Search queries: at least one query is required');
-  await Actor.exit();
-  process.exit(0);
+
+if (!input.profileScraperMode) {
+  input.profileScraperMode = 'Full ($7 per 1k)';
 }
 
+input.searchQueries = (input.searchQueries || []).filter((q) => q && !!q.trim());
+
 const query: {
-  company: string[];
-  companyId: string[];
-  companyUniversalName: string[];
-  school: string[];
-  schoolId: string[];
-  schoolUniversalName: string[];
-  geoId: string[];
+  currentCompanies: string[];
+  pastCompanies: string[];
+  schools: string[];
   location: string[];
+  currentJobTitles: string[];
+  pastJobTitles: string[];
+  firstNames: string[];
+  lastNames: string[];
 } = {
-  company: input.company || [],
-  companyId: input.companyIds || [],
-  companyUniversalName: [...(input.companyPublicIdentifiers || []), ...(input.companyUrls || [])],
-  school: input.school || [],
-  schoolId: input.schoolIds || [],
-  schoolUniversalName: [...(input.schoolPublicIdentifiers || []), ...(input.schoolUrls || [])],
-  geoId: input.geoIds || [],
+  currentCompanies: input.currentCompanies || [],
+  pastCompanies: input.pastCompanies || [],
+  schools: input.schools || [],
   location: input.locations || [],
+  currentJobTitles: input.currentJobTitles || [],
+  pastJobTitles: input.pastJobTitles || [],
+  firstNames: input.firstNames || [],
+  lastNames: input.lastNames || [],
 };
 
 const { actorId, actorRunId, actorBuildId, userId, actorMaxPaidDatasetItems, memoryMbytes } =
   Actor.getEnv();
+const client = Actor.newClient();
+
+const user = userId ? await client.user(userId).get() : null;
+const cm = Actor.getChargingManager();
+const pricingInfo = cm.getPricingInfo();
 
 const scraper = createLinkedinScraper({
   apiKey: process.env.HARVESTAPI_TOKEN!,
@@ -71,46 +69,93 @@ const scraper = createLinkedinScraper({
     'x-apify-actor-build-id': actorBuildId!,
     'x-apify-memory-mbytes': String(memoryMbytes),
     'x-apify-actor-max-paid-dataset-items': String(actorMaxPaidDatasetItems) || '0',
+    'x-apify-username': user?.username || '',
+    'x-apify-user-is-paying': (user as Record<string, any> | null)?.isPaying,
+    'x-apify-max-total-charge-usd': String(pricingInfo.maxTotalChargeUsd),
+    'x-apify-is-pay-per-event': String(pricingInfo.isPayPerEvent),
   },
 });
 
-let maxItems = Number(input.maxItems) || actorMaxPaidDatasetItems || undefined;
-if (actorMaxPaidDatasetItems && maxItems && maxItems > actorMaxPaidDatasetItems) {
-  maxItems = actorMaxPaidDatasetItems;
+const state: {
+  lastPromise: Promise<any> | null;
+  leftItems: number;
+} = {
+  lastPromise: null,
+  leftItems: actorMaxPaidDatasetItems || 1000000,
+};
+if (input.maxItems && input.maxItems < state.leftItems) {
+  state.leftItems = input.maxItems;
 }
 
-for (const searchQuery of input.searchQueries) {
-  await scraper.scrapeProfiles({
+const pushItem = async (item: any) => {
+  console.info(`Scraped profile ${item?.publicIdentifier || item?.id}`);
+
+  if (pricingInfo.isPayPerEvent) {
+    if (input.profileScraperMode === 'Short ($3 per 1k)') {
+      state.lastPromise = Actor.pushData(
+        item,
+        (pricingInfo.isPayPerEvent ? 'short-profile' : undefined) as string,
+      );
+    }
+    if (input.profileScraperMode === 'Full ($7 per 1k)') {
+      state.lastPromise = Actor.pushData(
+        item,
+        (pricingInfo.isPayPerEvent ? 'full-profile' : undefined) as string,
+      );
+    }
+  } else {
+    state.lastPromise = Actor.pushData(item);
+  }
+};
+
+const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
+  // tryFindEmail: input.findEmails,
+  outputType: 'callback',
+  onItemScraped: async ({ item }) => {
+    return pushItem(item);
+  },
+  optionsOverride: {
+    fetchItem: async ({ item }) => {
+      if (item?.id || item?.publicIdentifier) {
+        state.leftItems -= 1;
+        if (state.leftItems < 0) {
+          return { skipped: true, done: true };
+        }
+
+        if (input.profileScraperMode === 'Short ($3 per 1k)') {
+          pushItem(item);
+          return { skipped: true };
+        }
+
+        return scraper.getProfile({
+          url: `https://www.linkedin.com/in/${item.publicIdentifier || item.id}`,
+          // tryFindEmail: input.findEmails,
+        });
+      }
+
+      return { skipped: true };
+    },
+  },
+  disableLog: true,
+  overrideConcurrency: 6,
+};
+
+for (const searchQuery of input.searchQueries.length ? input.searchQueries : ['']) {
+  if (state.leftItems <= 0) {
+    break;
+  }
+
+  await scraper.scrapeSalesNavigatorLeads({
     query: {
       search: searchQuery,
       ...query,
     },
-    outputType: 'callback',
-    onItemScraped: async ({ item }) => {
-      console.info(`Scraped profile ${item.publicIdentifier || item?.id}`);
-      await Actor.pushData(item);
-    },
-    optionsOverride: {
-      fetchItem: async ({ item }) => {
-        if (item?.publicIdentifier)
-          return scraper.getProfile({ publicIdentifier: item.publicIdentifier });
-
-        if (input.outputHidden && item.id) {
-          return {
-            element: item as Profile,
-            entityId: item.id,
-            status: 200,
-            error: null,
-            query: {},
-          };
-        }
-        return { skipped: true };
-      },
-    },
-    overrideConcurrency: 6,
-    maxItems,
+    ...scrapeParams,
+    maxItems: state.leftItems,
   });
 }
+
+await state.lastPromise;
 
 // Gracefully exit the Actor process. It's recommended to quit all Actors with an exit().
 await Actor.exit();

@@ -3,12 +3,25 @@
   "type": "object",
   "schemaVersion": 1,
   "properties": {
+    "profileScraperMode": {
+      "title": "Profile Scraper Mode",
+      "type": "string",
+      "enum": ["Short ($3 per 1k)", "Full ($7 per 1k)"],
+      "description": "Choose the mode for scraping LinkedIn profiles. The Short mode provides basic information, while the Full mode includes full detailed profile data.",
+      "prefill": "Full ($7 per 1k)"
+    },
     "searchQueries": {
-      "title": "Search queries",
+      "title": "Search queries (approximate search)",
       "type": "array",
       "editor": "stringList",
       "description": "Queries to search LinkedIn profiles by name.",
-      "prefill": ["Michael", "Mark"]
+      "prefill": ["Founder", "Marketing Manager"]
+    },
+    "maxItems": {
+      "title": "Maximum number of profiles to scrape for all queries",
+      "type": "integer",
+      "description": "Maximum number of profiles to scrape for all queries. The actor will stop scraping when this limit is reached.",
+      "prefill": 20
     },
 
     "locations": {
@@ -19,18 +32,27 @@
       "prefill": ["New York", "California"],
       "maxItems": 10
     },
-    "company": {
-      "title": "Company Filter",
+
+    "currentCompanies": {
+      "title": "Current Company Filter",
       "type": "array",
       "editor": "stringList",
-      "description": "Filter Profiles by these LinkedIn companies. Provide full URLs or identifiers (last part in the URL)",
+      "description": "Filter Profiles by these LinkedIn companies. Provide full LinkedIn URLs",
+      "maxItems": 10
+    },
+    "pastCompanies": {
+      "title": "Past Company Filter",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn past companies. Provide full LinkedIn URLs",
       "maxItems": 10,
       "prefill": [
         "https://www.linkedin.com/company/google",
         "https://www.linkedin.com/company/microsoft"
       ]
     },
-    "school": {
+
+    "schools": {
       "title": "School Filter",
       "type": "array",
       "editor": "stringList",
@@ -41,69 +63,35 @@
         "https://www.linkedin.com/school/mit"
       ]
     },
-    "maxItems": {
-      "title": "Maximum number of profiles to scrape per each search query input",
-      "type": "integer",
-      "description": "Maximum number of profiles to scrape per each search query input.",
-      "prefill": 15
+
+    "currentJobTitles": {
+      "title": "Current Job Title Filter (exact search)",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn current job titles. Example: `Software Engineer`.",
+      "maxItems": 10
+    },
+    "pastJobTitles": {
+      "title": "Past Job Title Filter",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn past job titles. Example: `Software Engineer`.",
+      "maxItems": 10
     },
 
-    "geoIds": {
-      "title": "Geo IDs Filter",
+    "firstNames": {
+      "title": "First Names Filter",
       "type": "array",
       "editor": "stringList",
-      "description": "Filter Profiles by these LinkedIn geo IDs. Example: `103644278`.",
-      "maxItems": 10,
-      "sectionCaption": "Advanced"
+      "description": "Filter Profiles by these LinkedIn first names. Example: `John`.",
+      "maxItems": 10
     },
-
-    "companyUrls": {
-      "title": "Company URLs Filter",
+    "lastNames": {
+      "title": "Last Names Filter",
       "type": "array",
       "editor": "stringList",
-      "maxItems": 10,
-      "description": "Filter Profiles by these LinkedIn company URLs. Example: `https://www.linkedin.com/company/google`."
-    },
-    "companyPublicIdentifiers": {
-      "title": "Company Public Identifiers Filter (last part in the URL)",
-      "type": "array",
-      "editor": "stringList",
-      "description": "Filter Profiles by these LinkedIn company public identifiers. Example: `google`."
-    },
-    "companyIds": {
-      "title": "Company IDs Filter",
-      "type": "array",
-      "editor": "stringList",
-      "maxItems": 10,
-      "description": "Filter Profiles by these LinkedIn company IDs. Example: `1441`."
-    },
-
-    "schoolUrls": {
-      "title": "School URLs Filter",
-      "type": "array",
-      "editor": "stringList",
-      "maxItems": 10,
-      "description": "Filter Profiles by these LinkedIn school URLs. Example: `https://www.linkedin.com/school/stanford-university`."
-    },
-    "schoolPublicIdentifiers": {
-      "title": "School Public Identifiers Filter (last part in the URL)",
-      "type": "array",
-      "editor": "stringList",
-      "maxItems": 10,
-      "description": "Filter Profiles by these LinkedIn school public identifiers. Example: `stanford-university`."
-    },
-    "schoolIds": {
-      "title": "School IDs Filter",
-      "type": "array",
-      "editor": "stringList",
-      "maxItems": 10,
-      "description": "Filter Profiles by these LinkedIn school IDs. Example: `1234`."
-    },
-    "outputHidden": {
-      "title": "Output un-scrapable items",
-      "type": "boolean",
-      "description": "If true, it will push into results all hidden by LinkedIn profile results. LinkedIn requires having common connections in order to expose profile URLs in the profile search, so our scraper usually detects a lot of these hidden profiles. This setting will output all profile items from the search without URLs and profile details",
-      "default": false
+      "description": "Filter Profiles by these LinkedIn last names. Example: `Doe`.",
+      "maxItems": 10
     }
   }
 }
