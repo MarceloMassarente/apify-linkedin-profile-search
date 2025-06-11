@@ -1,5 +1,10 @@
 // Apify SDK - toolkit for building Apify Actors (Read more at https://docs.apify.com/sdk/js/).
-import { createLinkedinScraper, ScrapeLinkedinSalesNavLeadsParams } from '@harvestapi/scraper';
+import {
+  createLinkedinScraper,
+  Profile,
+  ProfileShort,
+  ScrapeLinkedinSalesNavLeadsParams,
+} from '@harvestapi/scraper';
 import { Actor } from 'apify';
 import { config } from 'dotenv';
 
@@ -87,8 +92,8 @@ if (input.maxItems && input.maxItems < state.leftItems) {
   state.leftItems = input.maxItems;
 }
 
-const pushItem = async (item: any) => {
-  console.info(`Scraped profile ${item?.publicIdentifier || item?.id}`);
+const pushItem = async (item: Profile | ProfileShort) => {
+  console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
 
   if (pricingInfo.isPayPerEvent) {
     if (input.profileScraperMode === 'Short ($3 per 1k)') {
