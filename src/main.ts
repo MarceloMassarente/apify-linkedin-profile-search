@@ -107,6 +107,12 @@ if (input.maxItems && input.maxItems < state.leftItems) {
   state.leftItems = input.maxItems;
 }
 
+if (state.leftItems < 10) {
+  console.warn(`Please set at least 10 items to scrape.`);
+  await Actor.exit();
+  process.exit(0);
+}
+
 const pushItem = async (item: Profile | ProfileShort) => {
   console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
 
