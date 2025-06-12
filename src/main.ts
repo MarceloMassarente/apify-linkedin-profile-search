@@ -13,8 +13,13 @@ config();
 // The init() call configures the Actor for its environment. It's recommended to start every Actor with an init().
 await Actor.init();
 
+enum ProfileScraperMode {
+  SHORT = 'Short ($4 per 1k)',
+  FULL = 'Full ($8 per 1k)',
+}
+
 interface Input {
-  profileScraperMode: 'Short ($3 per 1k)' | 'Full ($7 per 1k)';
+  profileScraperMode: ProfileScraperMode;
   searchQueries?: string[];
   currentCompanies?: string[];
   pastCompanies?: string[];
@@ -26,13 +31,15 @@ interface Input {
   locations?: string[];
   maxItems?: number;
 }
+
 // Structure of input is defined in input_schema.json
 const input = await Actor.getInput<Input>();
 if (!input) throw new Error('Input is missing!');
 
-if (!input.profileScraperMode) {
-  input.profileScraperMode = 'Full ($7 per 1k)';
-}
+const profileScraperMode =
+  input.profileScraperMode === ProfileScraperMode.SHORT
+    ? ProfileScraperMode.SHORT
+    : ProfileScraperMode.FULL;
 
 input.searchQueries = (input.searchQueries || []).filter((q) => q && !!q.trim());
 
@@ -55,6 +62,14 @@ const query: {
   firstNames: input.firstNames || [],
   lastNames: input.lastNames || [],
 };
+
+for (const key of Object.keys(query) as (keyof typeof query)[]) {
+  if (Array.isArray(query[key]) && query[key].length) {
+    query[key] = query[key]
+      .map((v) => (v || '').replace(/,/g, ' ').trim())
+      .filter((v) => v && v.length);
+  }
+}
 
 const { actorId, actorRunId, actorBuildId, userId, actorMaxPaidDatasetItems, memoryMbytes } =
   Actor.getEnv();
@@ -96,17 +111,11 @@ const pushItem = async (item: Profile | ProfileShort) => {
   console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
 
   if (pricingInfo.isPayPerEvent) {
-    if (input.profileScraperMode === 'Short ($3 per 1k)') {
-      state.lastPromise = Actor.pushData(
-        item,
-        (pricingInfo.isPayPerEvent ? 'short-profile' : undefined) as string,
-      );
+    if (profileScraperMode === ProfileScraperMode.SHORT) {
+      state.lastPromise = Actor.pushData(item, 'short-profile');
     }
-    if (input.profileScraperMode === 'Full ($7 per 1k)') {
-      state.lastPromise = Actor.pushData(
-        item,
-        (pricingInfo.isPayPerEvent ? 'full-profile' : undefined) as string,
-      );
+    if (profileScraperMode === ProfileScraperMode.FULL) {
+      state.lastPromise = Actor.pushData(item, 'full-profile');
     }
   } else {
     state.lastPromise = Actor.pushData(item);
@@ -127,7 +136,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
           return { skipped: true, done: true };
         }
 
-        if (input.profileScraperMode === 'Short ($3 per 1k)') {
+        if (profileScraperMode === ProfileScraperMode.SHORT) {
           pushItem(item);
           return { skipped: true };
         }
@@ -142,7 +151,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
     },
   },
   disableLog: true,
-  overrideConcurrency: 6,
+  overrideConcurrency: 4,
 };
 
 for (const searchQuery of input.searchQueries.length ? input.searchQueries : ['']) {

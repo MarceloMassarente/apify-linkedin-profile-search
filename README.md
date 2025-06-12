@@ -2,6 +2,8 @@
 
 Our powerful tool helps you search all LinkedIn Profiles and filter by companies, job titles, locations and more without compromising security or violating platform policies.
 
+Unlike other Actors scraping anonymous "LinkedIn member"s from search, this Actor can find and scrape nearly everyone on LinkedIn.
+
 ### Key Benefits
 
 - No cookies or account required: Access profile data without sharing cookies or risking account restrictions
@@ -12,8 +14,8 @@ Our powerful tool helps you search all LinkedIn Profiles and filter by companies
 
 1. Choose Profile Scraper Mode
 
-- Short ($3 per 1000) will outputs full name, profile URL, summary, location, current positions.
-- Full ($7 per 1000) will output full profile data including complete work experience, education, skills, and more.
+- Short ($4 per 1000) will outputs full name, profile URL, summary, location, current positions.
+- Full ($8 per 1000) will output full profile data including complete work experience, education, skills, and more.
 
 2. Provide any combination of the following search parameters to find LinkedIn profiles:
 
