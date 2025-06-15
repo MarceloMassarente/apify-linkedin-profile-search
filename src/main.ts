@@ -127,6 +127,15 @@ const logFreeUserExceeding = () =>
   );
 
 if (!isPaying) {
+  if (totalRuns > 15) {
+    console.warn(
+      styleText('bgYellow', ' [WARNING] ') +
+        ' Free users are limited to 15 runs. Please upgrade to a paid plan to run more.',
+    );
+    await Actor.exit();
+    process.exit(0);
+  }
+
   if (state.leftItems > 50) {
     isFreeUserExceeding = true;
     state.leftItems = 50;
