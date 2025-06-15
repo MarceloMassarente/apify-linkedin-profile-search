@@ -7,6 +7,7 @@ import {
 } from '@harvestapi/scraper';
 import { Actor } from 'apify';
 import { config } from 'dotenv';
+import { styleText } from 'node:util';
 
 config();
 
@@ -118,12 +119,18 @@ if (input.maxItems && input.maxItems < state.leftItems) {
   state.leftItems = input.maxItems;
 }
 
+let isFreeUserExceeding = false;
+const logFreeUserExceeding = () =>
+  console.warn(
+    styleText('bgYellow', ' [WARNING] ') +
+      ' Free users are limited up to 50 items per run. Please upgrade to a paid plan to scrape more items.',
+  );
+
 if (!isPaying) {
   if (state.leftItems > 50) {
-    console.warn(
-      'Free user are limited to 50 items per run. Please upgrade to a paid plan to scrape more items.',
-    );
+    isFreeUserExceeding = true;
     state.leftItems = 50;
+    logFreeUserExceeding();
   }
 }
 
@@ -197,6 +204,10 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
 }
 
 await state.lastPromise;
+
+if (isFreeUserExceeding) {
+  logFreeUserExceeding();
+}
 
 // Gracefully exit the Actor process. It's recommended to quit all Actors with an exit().
 await Actor.exit();
