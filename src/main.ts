@@ -78,6 +78,15 @@ const client = Actor.newClient();
 const user = userId ? await client.user(userId).get() : null;
 const cm = Actor.getChargingManager();
 const pricingInfo = cm.getPricingInfo();
+const isPaying = (user as Record<string, any> | null)?.isPaying === false ? false : true;
+
+let totalRuns = 0;
+if (userId) {
+  const store = await Actor.openKeyValueStore('run-counter-store');
+  totalRuns = Number(await store.getValue(userId)) || 0;
+  totalRuns++;
+  await store.setValue(userId, totalRuns);
+}
 
 const scraper = createLinkedinScraper({
   apiKey: process.env.HARVESTAPI_TOKEN!,
@@ -91,8 +100,10 @@ const scraper = createLinkedinScraper({
     'x-apify-actor-max-paid-dataset-items': String(actorMaxPaidDatasetItems) || '0',
     'x-apify-username': user?.username || '',
     'x-apify-user-is-paying': (user as Record<string, any> | null)?.isPaying,
+    'x-apify-user-is-paying2': String(isPaying),
     'x-apify-max-total-charge-usd': String(pricingInfo.maxTotalChargeUsd),
     'x-apify-is-pay-per-event': String(pricingInfo.isPayPerEvent),
+    'x-apify-user-runs': String(totalRuns),
   },
 });
 
@@ -107,7 +118,16 @@ if (input.maxItems && input.maxItems < state.leftItems) {
   state.leftItems = input.maxItems;
 }
 
-if (state.leftItems < 10) {
+if (!isPaying) {
+  if (state.leftItems > 50) {
+    console.warn(
+      'Free user are limited to 50 items per run. Please upgrade to a paid plan to scrape more items.',
+    );
+    state.leftItems = 50;
+  }
+}
+
+if (isPaying && state.leftItems < 10) {
   console.warn(`Please set at least 10 items to scrape.`);
   await Actor.exit();
   process.exit(0);
@@ -158,6 +178,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   },
   disableLog: true,
   overrideConcurrency: 4,
+  warnPageLimit: !isPaying,
 };
 
 for (const searchQuery of input.searchQueries.length ? input.searchQueries : ['']) {
