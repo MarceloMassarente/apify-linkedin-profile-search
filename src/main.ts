@@ -199,7 +199,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
     },
   },
   disableLog: true,
-  overrideConcurrency: 4,
+  overrideConcurrency: 8,
   overridePageConcurrency: state.leftItems > 200 ? 2 : 1,
   warnPageLimit: isPaying,
 };
