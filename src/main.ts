@@ -1,5 +1,6 @@
 // Apify SDK - toolkit for building Apify Actors (Read more at https://docs.apify.com/sdk/js/).
 import {
+  ApiItemResponse,
   createLinkedinScraper,
   Profile,
   ProfileShort,
@@ -89,25 +90,6 @@ if (userId) {
   await store.setValue(userId, totalRuns);
 }
 
-const scraper = createLinkedinScraper({
-  apiKey: process.env.HARVESTAPI_TOKEN!,
-  baseUrl: process.env.HARVESTAPI_URL || 'https://api.harvest-api.com',
-  addHeaders: {
-    'x-apify-userid': userId!,
-    'x-apify-actor-id': actorId!,
-    'x-apify-actor-run-id': actorRunId!,
-    'x-apify-actor-build-id': actorBuildId!,
-    'x-apify-memory-mbytes': String(memoryMbytes),
-    'x-apify-actor-max-paid-dataset-items': String(actorMaxPaidDatasetItems) || '0',
-    'x-apify-username': user?.username || '',
-    'x-apify-user-is-paying': (user as Record<string, any> | null)?.isPaying,
-    'x-apify-user-is-paying2': String(isPaying),
-    'x-apify-max-total-charge-usd': String(pricingInfo.maxTotalChargeUsd),
-    'x-apify-is-pay-per-event': String(pricingInfo.isPayPerEvent),
-    'x-apify-user-runs': String(totalRuns),
-  },
-});
-
 const state: {
   lastPromise: Promise<any> | null;
   leftItems: number;
@@ -164,6 +146,27 @@ const pushItem = async (item: Profile | ProfileShort) => {
   }
 };
 
+const scraper = createLinkedinScraper({
+  apiKey: process.env.HARVESTAPI_TOKEN!,
+  baseUrl: process.env.HARVESTAPI_URL || 'https://api.harvest-api.com',
+  addHeaders: {
+    'x-apify-userid': userId!,
+    'x-apify-actor-id': actorId!,
+    'x-apify-actor-run-id': actorRunId!,
+    'x-apify-actor-build-id': actorBuildId!,
+    'x-apify-memory-mbytes': String(memoryMbytes),
+    'x-apify-actor-max-paid-dataset-items': String(actorMaxPaidDatasetItems) || '0',
+    'x-apify-username': user?.username || '',
+    'x-apify-user-is-paying': (user as Record<string, any> | null)?.isPaying,
+    'x-apify-user-is-paying2': String(isPaying),
+    'x-apify-max-total-charge-usd': String(pricingInfo.maxTotalChargeUsd),
+    'x-apify-is-pay-per-event': String(pricingInfo.isPayPerEvent),
+    'x-apify-user-runs': String(totalRuns),
+    'x-apify-user-left-items': String(state.leftItems),
+    'x-apify-user-max-items': String(input.maxItems),
+  },
+});
+
 const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   // tryFindEmail: input.findEmails,
   outputType: 'callback',
@@ -178,9 +181,12 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
           return { skipped: true, done: true };
         }
 
-        if (profileScraperMode === ProfileScraperMode.SHORT) {
-          pushItem(item);
-          return { skipped: true };
+        if (profileScraperMode === ProfileScraperMode.SHORT && item?.id) {
+          return {
+            status: 200,
+            entityId: item.id || item.publicIdentifier,
+            element: item,
+          } as ApiItemResponse<Profile>;
         }
 
         return scraper.getProfile({
