@@ -194,7 +194,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   },
   disableLog: true,
   overrideConcurrency: 4,
-  warnPageLimit: !isPaying,
+  warnPageLimit: isPaying,
 };
 
 for (const searchQuery of input.searchQueries.length ? input.searchQueries : ['']) {
@@ -202,13 +202,32 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
     break;
   }
 
+  const itemQuery = {
+    search: searchQuery,
+    ...query,
+  };
+  for (const key of Object.keys(itemQuery) as (keyof typeof itemQuery)[]) {
+    if (!itemQuery[key]) {
+      delete itemQuery[key];
+    }
+    if (Array.isArray(itemQuery[key])) {
+      if (!itemQuery[key].length) {
+        delete itemQuery[key];
+      }
+    }
+  }
+
   await scraper.scrapeSalesNavigatorLeads({
-    query: {
-      search: searchQuery,
-      ...query,
-    },
+    query: itemQuery,
     ...scrapeParams,
     maxItems: state.leftItems,
+    onFirstPageFetched: ({ data }) => {
+      if (data?.pagination) {
+        console.info(
+          `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
+        );
+      }
+    },
   });
 }
 
