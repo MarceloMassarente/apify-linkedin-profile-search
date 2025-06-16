@@ -200,6 +200,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   },
   disableLog: true,
   overrideConcurrency: 4,
+  overridePageConcurrency: state.leftItems > 200 ? 2 : 1,
   warnPageLimit: isPaying,
 };
 
