@@ -224,6 +224,13 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
     }
   }
 
+  if (!Object.keys(itemQuery).length) {
+    console.warn(
+      'Please provide at least one search query or filter. Nothing to search, skipping...',
+    );
+    continue;
+  }
+
   await scraper.scrapeSalesNavigatorLeads({
     query: itemQuery,
     ...scrapeParams,
