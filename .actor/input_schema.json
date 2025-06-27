@@ -21,8 +21,7 @@
       "title": "Maximum number of profiles to scrape for all queries",
       "type": "integer",
       "description": "Maximum number of profiles to scrape for all queries. The actor will stop scraping when this limit is reached.",
-      "prefill": 20,
-      "minimum": 10
+      "prefill": 20
     },
 
     "locations": {
