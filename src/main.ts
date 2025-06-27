@@ -16,12 +16,19 @@ config();
 await Actor.init();
 
 enum ProfileScraperMode {
-  SHORT = 'Short ($4 per 1k)',
-  FULL = 'Full ($8 per 1k)',
+  SHORT,
+  FULL,
+  EMAIL,
 }
 
+const profileScraperModeInputMap = {
+  'Short ($4 per 1k)': ProfileScraperMode.SHORT,
+  'Full ($8 per 1k)': ProfileScraperMode.FULL,
+  'Full + email ($12 per 1k)': ProfileScraperMode.EMAIL,
+};
+
 interface Input {
-  profileScraperMode: ProfileScraperMode;
+  profileScraperMode: keyof typeof profileScraperModeInputMap;
   searchQueries?: string[];
   currentCompanies?: string[];
   pastCompanies?: string[];
@@ -39,9 +46,7 @@ const input = await Actor.getInput<Input>();
 if (!input) throw new Error('Input is missing!');
 
 const profileScraperMode =
-  input.profileScraperMode === ProfileScraperMode.SHORT
-    ? ProfileScraperMode.SHORT
-    : ProfileScraperMode.FULL;
+  profileScraperModeInputMap[input.profileScraperMode] ?? ProfileScraperMode.FULL;
 
 input.searchQueries = (input.searchQueries || []).filter((q) => q && !!q.trim());
 
@@ -141,6 +146,10 @@ const pushItem = async (item: Profile | ProfileShort) => {
     if (profileScraperMode === ProfileScraperMode.FULL) {
       state.lastPromise = Actor.pushData(item, 'full-profile');
     }
+    if (profileScraperMode === ProfileScraperMode.EMAIL) {
+      state.lastPromise = Actor.pushData(item, 'full-profile');
+      Actor.charge({ eventName: 'short-profile' });
+    }
   } else {
     state.lastPromise = Actor.pushData(item);
   }
@@ -168,7 +177,7 @@ const scraper = createLinkedinScraper({
 });
 
 const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
-  // tryFindEmail: input.findEmails,
+  tryFindEmail: profileScraperMode === ProfileScraperMode.EMAIL,
   outputType: 'callback',
   onItemScraped: async ({ item }) => {
     return pushItem(item);
@@ -191,7 +200,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
 
         return scraper.getProfile({
           url: `https://www.linkedin.com/in/${item.publicIdentifier || item.id}`,
-          // tryFindEmail: input.findEmails,
+          tryFindEmail: profileScraperMode === ProfileScraperMode.EMAIL,
         });
       }
 
@@ -203,6 +212,8 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   overridePageConcurrency: state.leftItems > 200 ? 2 : 1,
   warnPageLimit: isPaying,
 };
+
+let didChargeForStats = false;
 
 for (const searchQuery of input.searchQueries.length ? input.searchQueries : ['']) {
   if (state.leftItems <= 0) {
@@ -229,6 +240,11 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
       'Please provide at least one search query or filter. Nothing to search, skipping...',
     );
     continue;
+  }
+
+  if (!didChargeForStats) {
+    didChargeForStats = true;
+    Actor.charge({ eventName: 'actor-start' });
   }
 
   await scraper.scrapeSalesNavigatorLeads({
