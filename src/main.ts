@@ -243,11 +243,6 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
     continue;
   }
 
-  if (!didChargeForStats) {
-    didChargeForStats = true;
-    Actor.charge({ eventName: 'actor-start' });
-  }
-
   await scraper.scrapeSalesNavigatorLeads({
     query: itemQuery,
     ...scrapeParams,
@@ -256,6 +251,11 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
       if (data?.status === 429) {
         console.error('To many requests');
       } else if (data?.pagination) {
+        if (!didChargeForStats) {
+          didChargeForStats = true;
+          Actor.charge({ eventName: 'actor-start' });
+        }
+
         console.info(
           `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
         );
