@@ -21,14 +21,19 @@ enum ProfileScraperMode {
   EMAIL,
 }
 
-const profileScraperModeInputMap = {
+const profileScraperModeInputMap1: Record<string, ProfileScraperMode> = {
   'Short ($4 per 1k)': ProfileScraperMode.SHORT,
   'Full ($8 per 1k)': ProfileScraperMode.FULL,
   'Full + email ($12 per 1k)': ProfileScraperMode.EMAIL,
 };
+const profileScraperModeInputMap2: Record<string, ProfileScraperMode> = {
+  '1': ProfileScraperMode.SHORT,
+  '2': ProfileScraperMode.FULL,
+  '3': ProfileScraperMode.EMAIL,
+};
 
 interface Input {
-  profileScraperMode: keyof typeof profileScraperModeInputMap;
+  profileScraperMode: string;
   searchQueries?: string[];
   currentCompanies?: string[];
   pastCompanies?: string[];
@@ -46,7 +51,9 @@ const input = await Actor.getInput<Input>();
 if (!input) throw new Error('Input is missing!');
 
 const profileScraperMode =
-  profileScraperModeInputMap[input.profileScraperMode] ?? ProfileScraperMode.FULL;
+  profileScraperModeInputMap1[input.profileScraperMode] ??
+  profileScraperModeInputMap2[input.profileScraperMode] ??
+  ProfileScraperMode.FULL;
 
 input.searchQueries = (input.searchQueries || []).filter((q) => q && !!q.trim());
 
@@ -202,7 +209,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
     },
   },
   disableLog: true,
-  overrideConcurrency: 8,
+  overrideConcurrency: profileScraperMode === ProfileScraperMode.EMAIL ? 10 : 8,
   overridePageConcurrency: state.leftItems > 200 ? 2 : 1,
   warnPageLimit: isPaying,
 };
@@ -246,7 +253,9 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
     ...scrapeParams,
     maxItems: state.leftItems,
     onFirstPageFetched: ({ data }) => {
-      if (data?.pagination) {
+      if (data?.status === 429) {
+        console.error('To many requests');
+      } else if (data?.pagination) {
         console.info(
           `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
         );
