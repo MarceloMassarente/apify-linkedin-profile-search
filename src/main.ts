@@ -249,7 +249,7 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
     maxItems: state.leftItems,
     onFirstPageFetched: ({ data }) => {
       if (data?.status === 429) {
-        console.error('To many requests');
+        console.error('Too many requests');
       } else if (data?.pagination) {
         if (!didChargeForStats) {
           didChargeForStats = true;
