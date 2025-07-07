@@ -137,8 +137,11 @@ if (!isPaying) {
   }
 }
 
-const pushItem = async (item: Profile | ProfileShort) => {
-  console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
+const pushItem = async (item: Profile | ProfileShort, payments: string[]) => {
+  console.info(
+    `Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`,
+    payments,
+  );
 
   if (pricingInfo.isPayPerEvent) {
     if (profileScraperMode === ProfileScraperMode.SHORT) {
@@ -149,7 +152,9 @@ const pushItem = async (item: Profile | ProfileShort) => {
     }
     if (profileScraperMode === ProfileScraperMode.EMAIL) {
       state.lastPromise = Actor.pushData(item, 'full-profile');
-      Actor.charge({ eventName: 'short-profile' });
+      if ((payments || []).includes('linkedinProfileWithEmail')) {
+        Actor.charge({ eventName: 'short-profile' });
+      }
     }
   } else {
     state.lastPromise = Actor.pushData(item);
@@ -180,8 +185,8 @@ const scraper = createLinkedinScraper({
 const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   findEmail: profileScraperMode === ProfileScraperMode.EMAIL,
   outputType: 'callback',
-  onItemScraped: async ({ item }) => {
-    return pushItem(item);
+  onItemScraped: async ({ item, payments }) => {
+    return pushItem(item, payments || []);
   },
   optionsOverride: {
     fetchItem: async ({ item }) => {
