@@ -80,7 +80,7 @@ const query: {
 for (const key of Object.keys(query) as (keyof typeof query)[]) {
   if (Array.isArray(query[key]) && query[key].length) {
     query[key] = query[key]
-      .map((v) => (v || '').replace(/,/g, ' ').trim())
+      .map((v) => (v || '').replace(/,/g, ' ').replace(/\s+/g, ' ').trim())
       .filter((v) => v && v.length);
   }
 }
@@ -178,7 +178,7 @@ const scraper = createLinkedinScraper({
 });
 
 const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
-  tryFindEmail: profileScraperMode === ProfileScraperMode.EMAIL,
+  findEmail: profileScraperMode === ProfileScraperMode.EMAIL,
   outputType: 'callback',
   onItemScraped: async ({ item }) => {
     return pushItem(item);
@@ -201,7 +201,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
 
         return scraper.getProfile({
           url: `https://www.linkedin.com/in/${item.publicIdentifier || item.id}`,
-          tryFindEmail: profileScraperMode === ProfileScraperMode.EMAIL,
+          findEmail: profileScraperMode === ProfileScraperMode.EMAIL,
         });
       }
 
@@ -261,6 +261,12 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
         );
       }
     },
+    addListingHeaders: {
+      'x-sub-user': user?.username || '',
+      'x-concurrency': user?.username ? '1' : (undefined as any),
+      'x-queue-size': '30',
+      'x-request-timeout': '360',
+    },
   });
 }
 
@@ -272,3 +278,4 @@ if (isFreeUserExceeding) {
 
 // Gracefully exit the Actor process. It's recommended to quit all Actors with an exit().
 await Actor.exit();
+// process.exit(0);
