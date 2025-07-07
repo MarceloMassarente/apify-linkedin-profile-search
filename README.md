@@ -4,11 +4,7 @@ Our powerful tool helps you search all LinkedIn Profiles and filter by companies
 
 Unlike other Actors scraping anonymous "LinkedIn member"s from search, this Actor can find and scrape nearly everyone on LinkedIn.
 
-### Key Benefits
-
-- No cookies or account required: Access profile data without sharing cookies or risking account restrictions
-- Fast response times deliver data in seconds 🚀
-- No caching, fresh data.
+Optionally, our tool can also try to find **email addresses** for LinkedIn profiles, which is ideal for lead generation, recruitment, and networking. We perform comprehensive validation checks, including SMTP checks, to ensure the email addresses are valid and deliverable, resulting in **low bounce rates and high deliverability**. Adaptive cost: if a LinkedIn profile is not complete enough to perform the email search - we will not charge you for the search.
 
 ## How It Works
 
@@ -16,6 +12,7 @@ Unlike other Actors scraping anonymous "LinkedIn member"s from search, this Acto
 
 - Short ($4 per 1000) will outputs full name, profile URL, summary, location, current positions.
 - Full ($8 per 1000) will output full profile data including complete work experience, education, skills, and more.
+- Full + email search ($12 per 1000) will output all data from Full mode and also try to find email addresses for the profiles.
 
 2. Provide any combination of the following search parameters to find LinkedIn profiles:
 
