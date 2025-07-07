@@ -12,7 +12,7 @@ Optionally, our tool can also try to find **email addresses** for LinkedIn profi
 
 - Short ($4 per 1000) will outputs full name, profile URL, summary, location, current positions.
 - Full ($8 per 1000) will output full profile data including complete work experience, education, skills, and more.
-- Full + email search ($12 per 1000) will output all data from Full mode and also try to find email addresses for the profiles.
+- Full + email search ($12 per 1000) will output all data from Full mode and also try to find email addresses for the profiles (it will be charged as full profile $8 + short profile $4 = $12 per 1000).
 
 2. Provide any combination of the following search parameters to find LinkedIn profiles:
 
