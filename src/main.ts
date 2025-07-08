@@ -93,13 +93,12 @@ const user = userId ? await client.user(userId).get() : null;
 const cm = Actor.getChargingManager();
 const pricingInfo = cm.getPricingInfo();
 const isPaying = (user as Record<string, any> | null)?.isPaying === false ? false : true;
+const runCounterStore = await Actor.openKeyValueStore('run-counter-store');
 
 let totalRuns = 0;
 if (userId) {
-  const store = await Actor.openKeyValueStore('run-counter-store');
-  totalRuns = Number(await store.getValue(userId)) || 0;
+  totalRuns = Number(await runCounterStore.getValue(userId)) || 0;
   totalRuns++;
-  await store.setValue(userId, totalRuns);
 }
 
 const state: {
@@ -269,13 +268,19 @@ for (const searchQuery of input.searchQueries.length ? input.searchQueries : [''
     addListingHeaders: {
       'x-sub-user': user?.username || '',
       'x-concurrency': user?.username ? '1' : (undefined as any),
-      'x-queue-size': '30',
+      'x-queue-size': isPaying ? '30' : '5',
       'x-request-timeout': '360',
     },
   });
 }
 
 await state.lastPromise;
+
+if (userId) {
+  totalRuns = Number(await runCounterStore.getValue(userId)) || 0;
+  totalRuns++;
+  await runCounterStore.setValue(userId, totalRuns);
+}
 
 if (isFreeUserExceeding) {
   logFreeUserExceeding();
