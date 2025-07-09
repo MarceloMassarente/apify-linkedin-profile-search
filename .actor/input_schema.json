@@ -10,12 +10,11 @@
       "description": "Choose the mode for scraping LinkedIn profiles. The Short mode provides basic information, while the Full mode includes full detailed profile data.",
       "prefill": "Full ($8 per 1k)"
     },
-    "searchQueries": {
-      "title": "Search queries (approximate search)",
-      "type": "array",
-      "editor": "stringList",
-      "description": "Queries to search LinkedIn profiles by name.",
-      "prefill": ["Founder", "Marketing Manager"]
+    "searchQuery": {
+      "title": "Search query (approximate/fuzzy search)",
+      "description": "Query to search LinkedIn profiles by name.",
+      "type": "string",
+      "prefill": "Founder"
     },
     "maxItems": {
       "title": "Maximum number of profiles to scrape for all queries",

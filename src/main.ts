@@ -34,7 +34,7 @@ const profileScraperModeInputMap2: Record<string, ProfileScraperMode> = {
 
 interface Input {
   profileScraperMode: string;
-  searchQueries?: string[];
+  searchQuery?: string;
   currentCompanies?: string[];
   pastCompanies?: string[];
   currentJobTitles?: string[];
@@ -55,7 +55,7 @@ const profileScraperMode =
   profileScraperModeInputMap2[input.profileScraperMode] ??
   ProfileScraperMode.FULL;
 
-input.searchQueries = (input.searchQueries || []).filter((q) => q && !!q.trim());
+input.searchQuery = (input.searchQuery || '').trim();
 
 const query: {
   currentCompanies: string[];
@@ -220,59 +220,63 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
 
 let didChargeForStats = false;
 
-for (const searchQuery of input.searchQueries.length ? input.searchQueries : ['']) {
-  if (state.leftItems <= 0) {
-    break;
-  }
+if (state.leftItems <= 0) {
+  console.warn(
+    styleText('bgYellow', ' [WARNING] ') +
+      ' No items left to scrape. Please increase the maxItems input or reduce the filters.',
+  );
+  await Actor.exit();
+  process.exit(0);
+}
 
-  const itemQuery = {
-    search: searchQuery,
-    ...query,
-  };
-  for (const key of Object.keys(itemQuery) as (keyof typeof itemQuery)[]) {
-    if (!itemQuery[key]) {
+const itemQuery = {
+  search: input.searchQuery || '',
+  ...query,
+};
+for (const key of Object.keys(itemQuery) as (keyof typeof itemQuery)[]) {
+  if (!itemQuery[key]) {
+    delete itemQuery[key];
+  }
+  if (Array.isArray(itemQuery[key])) {
+    if (!itemQuery[key].length) {
       delete itemQuery[key];
     }
-    if (Array.isArray(itemQuery[key])) {
-      if (!itemQuery[key].length) {
-        delete itemQuery[key];
-      }
-    }
   }
-
-  if (!Object.keys(itemQuery).length) {
-    console.warn(
-      'Please provide at least one search query or filter. Nothing to search, skipping...',
-    );
-    continue;
-  }
-
-  await scraper.scrapeSalesNavigatorLeads({
-    query: itemQuery,
-    ...scrapeParams,
-    maxItems: state.leftItems,
-    onFirstPageFetched: ({ data }) => {
-      if (data?.status === 429) {
-        console.error('Too many requests');
-      } else if (data?.pagination) {
-        if (!didChargeForStats) {
-          didChargeForStats = true;
-          Actor.charge({ eventName: 'actor-start' });
-        }
-
-        console.info(
-          `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
-        );
-      }
-    },
-    addListingHeaders: {
-      'x-sub-user': user?.username || '',
-      'x-concurrency': user?.username ? '1' : (undefined as any),
-      'x-queue-size': isPaying ? '30' : '5',
-      'x-request-timeout': '360',
-    },
-  });
 }
+
+if (!Object.keys(itemQuery).length) {
+  console.warn(
+    'Please provide at least one search query or filter. Nothing to search, skipping...',
+  );
+  await Actor.exit();
+  process.exit(0);
+}
+
+await scraper.scrapeSalesNavigatorLeads({
+  query: itemQuery,
+  ...scrapeParams,
+  maxItems: state.leftItems,
+  onFirstPageFetched: ({ data }) => {
+    if (data?.status === 429) {
+      console.error('Too many requests');
+    } else if (data?.pagination) {
+      if (!didChargeForStats) {
+        didChargeForStats = true;
+        Actor.charge({ eventName: 'actor-start' });
+      }
+
+      console.info(
+        `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
+      );
+    }
+  },
+  addListingHeaders: {
+    'x-sub-user': user?.username || '',
+    'x-concurrency': user?.username ? '1' : (undefined as any),
+    'x-queue-size': isPaying ? '30' : '5',
+    'x-request-timeout': '360',
+  },
+});
 
 await state.lastPromise;
 
