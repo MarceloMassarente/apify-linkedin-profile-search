@@ -35,6 +35,7 @@ const profileScraperModeInputMap2: Record<string, ProfileScraperMode> = {
 interface Input {
   profileScraperMode: string;
   searchQuery?: string;
+  searchQueries?: string[]; // Deprecated, use searchQuery instead
   currentCompanies?: string[];
   pastCompanies?: string[];
   currentJobTitles?: string[];
@@ -55,7 +56,8 @@ const profileScraperMode =
   profileScraperModeInputMap2[input.profileScraperMode] ??
   ProfileScraperMode.FULL;
 
-input.searchQuery = (input.searchQuery || '').trim();
+input.searchQuery =
+  (input.searchQuery || '').trim() || (input.searchQueries || [])[0]?.trim() || '';
 
 const query: {
   currentCompanies: string[];
