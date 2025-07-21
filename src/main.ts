@@ -118,22 +118,22 @@ let isFreeUserExceeding = false;
 const logFreeUserExceeding = () =>
   console.warn(
     styleText('bgYellow', ' [WARNING] ') +
-      ' Free users are limited up to 50 items per run. Please upgrade to a paid plan to scrape more items.',
+      ' Free users are limited up to 25 items per run. Please upgrade to a paid plan to scrape more items.',
   );
 
 if (!isPaying) {
-  if (totalRuns > 10) {
+  if (totalRuns > 8) {
     console.warn(
       styleText('bgYellow', ' [WARNING] ') +
-        ' Free users are limited to 10 runs. Please upgrade to a paid plan to run more.',
+        ' Free users are limited to 8 runs. Please upgrade to a paid plan to run more.',
     );
     await Actor.exit();
     process.exit(0);
   }
 
-  if (state.leftItems > 50) {
+  if (state.leftItems > 25) {
     isFreeUserExceeding = true;
-    state.leftItems = 50;
+    state.leftItems = 25;
     logFreeUserExceeding();
   }
 }
