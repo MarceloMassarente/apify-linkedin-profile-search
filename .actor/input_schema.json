@@ -11,7 +11,7 @@
       "prefill": "Full ($8 per 1k)"
     },
     "searchQuery": {
-      "title": "Search query (approximate/fuzzy search)",
+      "title": "Search query (fuzzy search)",
       "description": "Query to search LinkedIn profiles by name.",
       "type": "string",
       "editor": "textfield",

@@ -139,10 +139,7 @@ if (!isPaying) {
 }
 
 const pushItem = async (item: Profile | ProfileShort, payments: string[]) => {
-  console.info(
-    `Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`,
-    payments,
-  );
+  console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
 
   if (pricingInfo.isPayPerEvent) {
     if (profileScraperMode === ProfileScraperMode.SHORT) {

@@ -16,7 +16,7 @@ Optionally, our tool can also try to find **email addresses** for LinkedIn profi
 
 2. Provide any combination of the following search parameters to find LinkedIn profiles:
 
-- List of general search queries (approximate search). (e.g., `Founder`, `Marketing Manager`, `John Doe`)
+- General search query (fuzzy search). (e.g., `Founder`, `Marketing Manager`, `John Doe`)
 - List of current Job titles (exact search) (e.g., `Marketing Manager`, `Data Scientist`)
 - List of past Job titles (exact search) (e.g., `Marketing Manager`, `Data Scientist`)
 - List of locations where they currently live (e.g., `New York`, `San Francisco`, `London`)
