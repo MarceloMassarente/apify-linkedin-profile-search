@@ -69,14 +69,23 @@
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn current job titles. Example: `Software Engineer`.",
-      "maxItems": 10
+      "maxItems": 20
     },
     "pastJobTitles": {
       "title": "Past Job Title Filter",
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn past job titles. Example: `Software Engineer`.",
-      "maxItems": 10
+      "maxItems": 20
+    },
+
+    "industryIds": {
+      "title": "Industry IDs Filter",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Filter Profiles by these LinkedIn industry IDs. Example: `4` for 'Software Development'. Full list: `https://github.com/HarvestAPI/linkedin-industry-codes-v2/blob/main/linkedin_industry_code_v2_all_eng_with_header.csv`",
+      "maxItems": 20,
+      "prefill": ["4", "5", "6"]
     },
 
     "firstNames": {

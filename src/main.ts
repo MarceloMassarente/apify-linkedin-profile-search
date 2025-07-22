@@ -44,6 +44,7 @@ interface Input {
   lastNames?: string[];
   schools?: string[];
   locations?: string[];
+  industryIds?: string[];
   maxItems?: number;
 }
 
@@ -68,6 +69,7 @@ const query: {
   pastJobTitles: string[];
   firstNames: string[];
   lastNames: string[];
+  industryIds?: string[];
 } = {
   currentCompanies: input.currentCompanies || [],
   pastCompanies: input.pastCompanies || [],
@@ -77,6 +79,7 @@ const query: {
   pastJobTitles: input.pastJobTitles || [],
   firstNames: input.firstNames || [],
   lastNames: input.lastNames || [],
+  industryIds: input.industryIds || [],
 };
 
 for (const key of Object.keys(query) as (keyof typeof query)[]) {
@@ -122,10 +125,10 @@ const logFreeUserExceeding = () =>
   );
 
 if (!isPaying) {
-  if (totalRuns > 8) {
+  if (totalRuns > 6) {
     console.warn(
       styleText('bgYellow', ' [WARNING] ') +
-        ' Free users are limited to 8 runs. Please upgrade to a paid plan to run more.',
+        ' Free users are limited to 6 runs. Please upgrade to a paid plan to run more.',
     );
     await Actor.exit();
     process.exit(0);
