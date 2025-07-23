@@ -19,7 +19,7 @@ Optionally, our tool can also try to find **email addresses** for LinkedIn profi
 - General search query (fuzzy search). (e.g., `Founder`, `Marketing Manager`, `John Doe`)
 - List of current Job titles (exact search) (e.g., `Marketing Manager`, `Data Scientist`)
 - List of past Job titles (exact search) (e.g., `Marketing Manager`, `Data Scientist`)
-- List of locations where they currently live (e.g., `New York`, `San Francisco`, `London`). Please not that LinkedIn does not always understand your text queries. For example for "UK" query it will apply "Ukraine" location, so you should use "United Kingdom" in this case. Try this out first in the location filter input of LinkedIn search at https://www.linkedin.com/search/results/people/?geoUrn=%5B%22103644278%22%5D, we will use the first suggestion from the autocomplete popup when you type your location.
+- List of locations where they currently live (e.g., `New York`, `San Francisco`, `London`). Please note that LinkedIn does not always understand your text queries. For example for "UK" query it will apply "Ukraine" location, so you should use "United Kingdom" in this case. Try this out first in the location filter input of LinkedIn search at `https://www.linkedin.com/search/results/people/?geoUrn=%5B%22103644278%22%5D` - we will use the first suggestion from the autocomplete popup when you type your location.
 - List of LinkedIn Company URLs where they currently work (e.g., `google`, `meta`, `amazon`)
 - List of LinkedIn Company URLs where they previously worked (e.g., `google`, `meta`, `amazon`)
 - List of LinkedIn School URLs where they studied (e.g., `stanford-university`, `MIT`)
