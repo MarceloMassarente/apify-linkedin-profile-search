@@ -109,7 +109,9 @@ if (userId) {
 const state: {
   lastPromise: Promise<any> | null;
   leftItems: number;
+  scrapedItems: number;
 } = {
+  scrapedItems: 0,
   lastPromise: null,
   leftItems: actorMaxPaidDatasetItems || 1000000,
 };
@@ -143,6 +145,7 @@ if (!isPaying) {
 
 const pushItem = async (item: Profile | ProfileShort, payments: string[]) => {
   console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
+  state.scrapedItems += 1;
 
   if (pricingInfo.isPayPerEvent) {
     if (profileScraperMode === ProfileScraperMode.SHORT) {
@@ -220,8 +223,6 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   warnPageLimit: isPaying,
 };
 
-let didChargeForStats = false;
-
 if (state.leftItems <= 0) {
   console.warn(
     styleText('bgYellow', ' [WARNING] ') +
@@ -254,6 +255,8 @@ if (!Object.keys(itemQuery).length) {
   process.exit(0);
 }
 
+let requestSuccess = false;
+
 await scraper.scrapeSalesNavigatorLeads({
   query: itemQuery,
   ...scrapeParams,
@@ -262,17 +265,14 @@ await scraper.scrapeSalesNavigatorLeads({
     if (data?.status === 429) {
       console.error('Too many requests');
     } else if (data?.pagination) {
-      if (!didChargeForStats) {
-        didChargeForStats = true;
-        Actor.charge({ eventName: 'actor-start' });
-      }
-
+      requestSuccess = true;
       console.info(
         `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
       );
     }
 
     if (typeof data?.error === 'string' && data.error.includes('No available resource')) {
+      requestSuccess = false;
       console.error(
         `We've hit LinkedIn rate limits due to the active usage from our Apify users. Rate limits reset hourly. Please continue at the beginning of the next hour.`,
       );
@@ -286,6 +286,10 @@ await scraper.scrapeSalesNavigatorLeads({
     'x-request-timeout': '360',
   },
 });
+
+if (state.scrapedItems <= 10 && requestSuccess) {
+  Actor.charge({ eventName: 'actor-start' });
+}
 
 await state.lastPromise;
 
