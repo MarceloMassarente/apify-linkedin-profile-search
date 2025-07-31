@@ -148,7 +148,7 @@ const pushItem = async (item: Profile | ProfileShort, payments: string[]) => {
   state.scrapedItems += 1;
 
   if (profileScraperMode === ProfileScraperMode.SHORT) {
-    state.lastPromise = Actor.pushData(item);
+    state.lastPromise = Actor.pushData(item, 'short-profile');
   }
   if (profileScraperMode === ProfileScraperMode.FULL) {
     state.lastPromise = Actor.pushData(item, 'full-profile');
@@ -219,7 +219,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   warnPageLimit: isPaying,
   onPageFetched: async ({ data }) => {
     if (data?.pagination && data?.status !== 429) {
-      Actor.charge({ eventName: 'search-page' });
+      // Actor.charge({ eventName: 'search-page' });
     }
   },
 };
@@ -256,6 +256,8 @@ if (!Object.keys(itemQuery).length) {
   process.exit(0);
 }
 
+let requestSuccess = false;
+
 await scraper.scrapeSalesNavigatorLeads({
   query: itemQuery,
   ...scrapeParams,
@@ -264,12 +266,15 @@ await scraper.scrapeSalesNavigatorLeads({
     if (data?.status === 429) {
       console.error('Too many requests');
     } else if (data?.pagination) {
+      requestSuccess = true;
       console.info(
         `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
       );
     }
 
     if (typeof data?.error === 'string' && data.error.includes('No available resource')) {
+      requestSuccess = false;
+
       console.error(
         `We've hit LinkedIn rate limits due to the active usage from our Apify users. Rate limits reset hourly. Please continue at the beginning of the next hour.`,
       );
@@ -283,6 +288,10 @@ await scraper.scrapeSalesNavigatorLeads({
     'x-request-timeout': '360',
   },
 });
+
+if (state.scrapedItems <= 10 && requestSuccess) {
+  Actor.charge({ eventName: 'actor-start' });
+}
 
 await state.lastPromise;
 
