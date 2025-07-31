@@ -99,6 +99,7 @@ const cm = Actor.getChargingManager();
 const pricingInfo = cm.getPricingInfo();
 const isPaying = (user as Record<string, any> | null)?.isPaying === false ? false : true;
 const runCounterStore = await Actor.openKeyValueStore('run-counter-store');
+const perEventPrices = cm.getPricingInfo().perEventPrices;
 
 let totalRuns = 0;
 if (userId) {
@@ -148,7 +149,11 @@ const pushItem = async (item: Profile | ProfileShort, payments: string[]) => {
   state.scrapedItems += 1;
 
   if (profileScraperMode === ProfileScraperMode.SHORT) {
-    state.lastPromise = Actor.pushData(item, 'short-profile');
+    if (perEventPrices['short-profile']) {
+      state.lastPromise = Actor.pushData(item, 'short-profile');
+    } else {
+      state.lastPromise = Actor.pushData(item);
+    }
   }
   if (profileScraperMode === ProfileScraperMode.FULL) {
     state.lastPromise = Actor.pushData(item, 'full-profile');
@@ -179,6 +184,8 @@ const scraper = createLinkedinScraper({
     'x-apify-user-runs': String(totalRuns),
     'x-apify-user-left-items': String(state.leftItems),
     'x-apify-user-max-items': String(input.maxItems),
+    'x-apify-user-profile-scraper-mode': String(profileScraperMode),
+    'x-apify-per-event-prices': JSON.stringify(perEventPrices),
   },
 });
 
@@ -219,7 +226,9 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   warnPageLimit: isPaying,
   onPageFetched: async ({ data }) => {
     if (data?.pagination && data?.status !== 429) {
-      // Actor.charge({ eventName: 'search-page' });
+      if (perEventPrices['search-page']) {
+        Actor.charge({ eventName: 'search-page' });
+      }
     }
   },
 };
@@ -290,7 +299,9 @@ await scraper.scrapeSalesNavigatorLeads({
 });
 
 if (state.scrapedItems <= 10 && requestSuccess) {
-  Actor.charge({ eventName: 'actor-start' });
+  if (perEventPrices['actor-start']) {
+    Actor.charge({ eventName: 'actor-start' });
+  }
 }
 
 await state.lastPromise;
