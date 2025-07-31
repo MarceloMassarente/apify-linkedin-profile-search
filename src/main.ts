@@ -147,21 +147,17 @@ const pushItem = async (item: Profile | ProfileShort, payments: string[]) => {
   console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
   state.scrapedItems += 1;
 
-  if (pricingInfo.isPayPerEvent) {
-    if (profileScraperMode === ProfileScraperMode.SHORT) {
-      state.lastPromise = Actor.pushData(item, 'short-profile');
-    }
-    if (profileScraperMode === ProfileScraperMode.FULL) {
-      state.lastPromise = Actor.pushData(item, 'full-profile');
-    }
-    if (profileScraperMode === ProfileScraperMode.EMAIL) {
-      state.lastPromise = Actor.pushData(item, 'full-profile');
-      if ((payments || []).includes('linkedinProfileWithEmail')) {
-        Actor.charge({ eventName: 'short-profile' });
-      }
-    }
-  } else {
+  if (profileScraperMode === ProfileScraperMode.SHORT) {
     state.lastPromise = Actor.pushData(item);
+  }
+  if (profileScraperMode === ProfileScraperMode.FULL) {
+    state.lastPromise = Actor.pushData(item, 'full-profile');
+  }
+  if (profileScraperMode === ProfileScraperMode.EMAIL) {
+    state.lastPromise = Actor.pushData(item, 'full-profile');
+    if ((payments || []).includes('linkedinProfileWithEmail')) {
+      Actor.charge({ eventName: 'short-profile' });
+    }
   }
 };
 
@@ -221,6 +217,11 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   overrideConcurrency: profileScraperMode === ProfileScraperMode.EMAIL ? 10 : 8,
   overridePageConcurrency: state.leftItems > 200 ? 2 : 1,
   warnPageLimit: isPaying,
+  onPageFetched: async ({ data }) => {
+    if (data?.pagination && data?.status !== 429) {
+      Actor.charge({ eventName: 'search-page' });
+    }
+  },
 };
 
 if (state.leftItems <= 0) {
@@ -255,8 +256,6 @@ if (!Object.keys(itemQuery).length) {
   process.exit(0);
 }
 
-let requestSuccess = false;
-
 await scraper.scrapeSalesNavigatorLeads({
   query: itemQuery,
   ...scrapeParams,
@@ -265,14 +264,12 @@ await scraper.scrapeSalesNavigatorLeads({
     if (data?.status === 429) {
       console.error('Too many requests');
     } else if (data?.pagination) {
-      requestSuccess = true;
       console.info(
         `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
       );
     }
 
     if (typeof data?.error === 'string' && data.error.includes('No available resource')) {
-      requestSuccess = false;
       console.error(
         `We've hit LinkedIn rate limits due to the active usage from our Apify users. Rate limits reset hourly. Please continue at the beginning of the next hour.`,
       );
@@ -286,10 +283,6 @@ await scraper.scrapeSalesNavigatorLeads({
     'x-request-timeout': '360',
   },
 });
-
-if (state.scrapedItems <= 10 && requestSuccess) {
-  Actor.charge({ eventName: 'actor-start' });
-}
 
 await state.lastPromise;
 
