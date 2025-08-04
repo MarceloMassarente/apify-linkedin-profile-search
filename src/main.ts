@@ -25,6 +25,10 @@ const profileScraperModeInputMap1: Record<string, ProfileScraperMode> = {
   'Short ($4 per 1k)': ProfileScraperMode.SHORT,
   'Full ($8 per 1k)': ProfileScraperMode.FULL,
   'Full + email search ($12 per 1k)': ProfileScraperMode.EMAIL,
+
+  Short: ProfileScraperMode.SHORT,
+  Full: ProfileScraperMode.FULL,
+  'Full + email search': ProfileScraperMode.EMAIL,
 };
 const profileScraperModeInputMap2: Record<string, ProfileScraperMode> = {
   '1': ProfileScraperMode.SHORT,
@@ -167,7 +171,10 @@ const pushItem = async (item: Profile | ProfileShort, payments: string[]) => {
       }
     } else {
       state.lastPromise = Actor.pushData(item, 'full-profile');
-      if ((payments || []).includes('linkedinProfileWithEmail') && perEventPrices['short-profile']) {
+      if (
+        (payments || []).includes('linkedinProfileWithEmail') &&
+        perEventPrices['short-profile']
+      ) {
         Actor.charge({ eventName: 'short-profile' });
       }
     }

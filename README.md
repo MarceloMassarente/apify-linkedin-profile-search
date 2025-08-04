@@ -10,9 +10,9 @@ Optionally, our tool can also try to find **email addresses** for LinkedIn profi
 
 1. Choose Profile Scraper Mode
 
-- Short ($4 per 1000) will outputs full name, profile URL, summary, location, current positions.
-- Full ($8 per 1000) will output full profile data including complete work experience, education, skills, and more.
-- Full + email search ($12 per 1000) will output all data from Full mode and also try to find email addresses for the profiles (it will be charged as full profile $8 + short profile $4 = $12 per 1000).
+- Short. The Actor will be scraping only search pages and will output only basic profile data. One search page is up to 25 results (short profiles).
+- Full. Additionally to scraping search pages, it will open profile links for each of the short profiles found on search page, and scrape all profile details as well.
+- Full + email search. Additionally to Full profiles, it will try to find email addresses for the profiles.
 
 2. Provide any combination of the following search parameters to find LinkedIn profiles:
 
