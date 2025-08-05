@@ -112,12 +112,10 @@ if (userId) {
 }
 
 const state: {
-  lastPromise: Promise<any> | null;
   leftItems: number;
   scrapedItems: number;
 } = {
   scrapedItems: 0,
-  lastPromise: null,
   leftItems: actorMaxPaidDatasetItems || 1000000,
 };
 if (input.maxItems && input.maxItems < state.leftItems) {
@@ -154,23 +152,23 @@ const pushItem = async (item: Profile | ProfileShort, payments: string[]) => {
 
   if (profileScraperMode === ProfileScraperMode.SHORT) {
     if (perEventPrices['short-profile']) {
-      state.lastPromise = Actor.pushData(item, 'short-profile');
+      await Actor.pushData(item, 'short-profile');
     } else {
-      state.lastPromise = Actor.pushData(item);
+      await Actor.pushData(item);
     }
   }
   if (profileScraperMode === ProfileScraperMode.FULL) {
-    state.lastPromise = Actor.pushData(item, 'full-profile');
+    await Actor.pushData(item, 'full-profile');
   }
   if (profileScraperMode === ProfileScraperMode.EMAIL) {
     if (perEventPrices['full-profile-with-email']) {
       if ((payments || []).includes('linkedinProfileWithEmail')) {
-        state.lastPromise = Actor.pushData(item, 'full-profile-with-email');
+        await Actor.pushData(item, 'full-profile-with-email');
       } else {
-        state.lastPromise = Actor.pushData(item, 'full-profile');
+        await Actor.pushData(item, 'full-profile');
       }
     } else {
-      state.lastPromise = Actor.pushData(item, 'full-profile');
+      await Actor.pushData(item, 'full-profile');
       if (
         (payments || []).includes('linkedinProfileWithEmail') &&
         perEventPrices['short-profile']
@@ -253,8 +251,7 @@ if (state.leftItems <= 0) {
     styleText('bgYellow', ' [WARNING] ') +
       ' No items left to scrape. Please increase the maxItems input or reduce the filters.',
   );
-  await Actor.exit();
-  process.exit(0);
+  await Actor.exit({ statusMessage: 'no items' });
 }
 
 const itemQuery = {
@@ -276,11 +273,11 @@ if (!Object.keys(itemQuery).length) {
   console.warn(
     'Please provide at least one search query or filter. Nothing to search, skipping...',
   );
-  await Actor.exit();
-  process.exit(0);
+  await Actor.exit({ statusMessage: 'no query' });
 }
 
 let requestSuccess = false;
+let hitRateLimit = false;
 
 await scraper.scrapeSalesNavigatorLeads({
   query: itemQuery,
@@ -298,6 +295,7 @@ await scraper.scrapeSalesNavigatorLeads({
 
     if (typeof data?.error === 'string' && data.error.includes('No available resource')) {
       requestSuccess = false;
+      hitRateLimit = true;
 
       console.error(
         `We've hit LinkedIn rate limits due to the active usage from our Apify users. Rate limits reset hourly. Please continue at the beginning of the next hour.`,
@@ -319,8 +317,6 @@ if (state.scrapedItems <= 10 && requestSuccess) {
   }
 }
 
-await state.lastPromise;
-
 if (userId) {
   totalRuns = Number(await runCounterStore.getValue(userId)) || 0;
   totalRuns++;
@@ -332,5 +328,6 @@ if (isFreeUserExceeding) {
 }
 
 // Gracefully exit the Actor process. It's recommended to quit all Actors with an exit().
-await Actor.exit();
-// process.exit(0);
+await Actor.exit({
+  statusMessage: hitRateLimit ? 'rate limited' : 'success',
+});
