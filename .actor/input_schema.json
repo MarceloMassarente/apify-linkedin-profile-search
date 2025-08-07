@@ -101,6 +101,22 @@
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn last names. Example: `Doe`.",
       "maxItems": 10
+    },
+
+    "startPage": {
+      "title": "Start Page",
+      "type": "integer",
+      "description": "The page to start scraping from. ",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 100
+    },
+    "takePages": {
+      "title": "Scrape Pages",
+      "type": "integer",
+      "description": "The number of search pages to scrape. ",
+      "minimum": 0,
+      "maximum": 100
     }
   }
 }

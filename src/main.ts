@@ -50,6 +50,8 @@ interface Input {
   locations?: string[];
   industryIds?: string[];
   maxItems?: number;
+  startPage?: number;
+  takePages?: number;
 }
 
 // Structure of input is defined in input_schema.json
@@ -237,6 +239,8 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   overrideConcurrency: profileScraperMode === ProfileScraperMode.EMAIL ? 10 : 8,
   overridePageConcurrency: state.leftItems > 200 ? 2 : 1,
   warnPageLimit: isPaying,
+  startPage: input.startPage,
+  takePages: input.takePages,
   onPageFetched: async ({ data }) => {
     if (data?.pagination && data?.status !== 429) {
       if (perEventPrices['search-page']) {
