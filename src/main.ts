@@ -1,6 +1,7 @@
 // Apify SDK - toolkit for building Apify Actors (Read more at https://docs.apify.com/sdk/js/).
 import {
   ApiItemResponse,
+  ApiPagination,
   createLinkedinScraper,
   Profile,
   ProfileShort,
@@ -148,9 +149,24 @@ if (!isPaying) {
   }
 }
 
-const pushItem = async (item: Profile | ProfileShort, payments: string[]) => {
+const pushItem = async ({
+  item,
+  payments,
+  pagination,
+}: {
+  item: Profile | ProfileShort;
+  payments: string[];
+  pagination: ApiPagination | null;
+}) => {
   console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
   state.scrapedItems += 1;
+
+  item = {
+    ...item,
+    _meta: {
+      pagination,
+    },
+  } as (Profile | ProfileShort) & { _meta: { pagination: ApiPagination | null } };
 
   if (profileScraperMode === ProfileScraperMode.SHORT) {
     if (perEventPrices['short-profile']) {
@@ -207,8 +223,8 @@ const scraper = createLinkedinScraper({
 const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   findEmail: profileScraperMode === ProfileScraperMode.EMAIL,
   outputType: 'callback',
-  onItemScraped: async ({ item, payments }) => {
-    return pushItem(item, payments || []);
+  onItemScraped: async ({ item, payments, pagination }) => {
+    return pushItem({ item, payments: payments || [], pagination });
   },
   optionsOverride: {
     fetchItem: async ({ item }) => {
