@@ -28,6 +28,59 @@ Other params (optionally):
 
 - `maxItems` - Maximum number of profiles to scrape for all queries. If you set to 0, it will scrape all available items or up to 2500 items per search query (LinkedIn doesn't allow to extract more than 2500 per one query).
 
+## Rate limits
+
+Currently this Actor cannot handle large volumes, due to LinkedIn rate limiting it (we are working on scaling it). 
+We recommend to have an automation to distribute you workload evenly, so that each hour in a day has nearly the same number of requests (avoiding bursts).  
+We count and reset rate limits hourly, so when it hits rate limits, you can continue scraping at the beginning of the next hour. If it still doesn't fit your volumes, please create an issue and let us know how many search pages you need to scrape per hour, and we will try to scale it for you.
+
+Example of working around rate limits:
+
+```js
+const client = new ApifyClient({ token: process.env.APIFY_API_KEY });
+const result1 = await client.actor('harvestapi/linkedin-profile-search').call({
+  currentJobTitles: ['CEO'],
+  startPage: 1,
+  takePages: 10, // for example, you want to scrape 10 pages
+});
+
+const { items } = await client.dataset(result1.defaultDatasetId).listItems();
+
+if (result1.statusMessage === 'rate limited') {
+  // we've hit the rate limit. 
+  
+  // await until the next hour
+  await new Promise(resolve => setTimeout(resolve, 3600000 - (new Date().getMinutes() * 60000 + new Date().getSeconds() * 1000 + new Date().getMilliseconds())));
+
+  // continue scraping the next page after the last successfully scraped page
+  const lastScrapedPageNumber = items[items.length - 1]?._meta?.pagination?.pageNumber || 0;
+  
+  const result2 = await client.actor('harvestapi/linkedin-profile-search').call({
+    currentJobTitles: ['CEO'],
+    startPage: lastScrapedPageNumber + 1,
+    takePages: 10 - lastScrapedPageNumber,
+  });
+}
+```
+
+Alternatively you can scrape page by page:
+```js
+let currentPage = 1;
+const result = await new ApifyClient({ token: process.env.APIFY_API_KEY })
+  .actor("harvestapi/linkedin-profile-search")
+  .call({
+    currentJobTitles: ["CEO"],
+    startPage: currentPage,
+    takePages: 1, // scrape just one page and exit
+  });
+
+if (result.statusMessage === "rate limited") {
+  // await until the next hour and retry this page
+} 
+currentPage++;
+// continue scraping the next page
+```
+
 ### Data You'll Receive
 
 - Profile summary and headline
