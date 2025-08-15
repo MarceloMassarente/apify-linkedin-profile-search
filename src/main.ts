@@ -106,7 +106,6 @@ const cm = Actor.getChargingManager();
 const pricingInfo = cm.getPricingInfo();
 const isPaying = (user as Record<string, any> | null)?.isPaying === false ? false : true;
 const runCounterStore = await Actor.openKeyValueStore('run-counter-store');
-const perEventPrices = cm.getPricingInfo().perEventPrices;
 
 let totalRuns = 0;
 if (userId) {
@@ -168,32 +167,25 @@ const pushItem = async ({
     },
   } as (Profile | ProfileShort) & { _meta: { pagination: ApiPagination | null } };
 
+  let pushResult: { eventChargeLimitReached: boolean } | null = null;
   if (profileScraperMode === ProfileScraperMode.SHORT) {
-    if (perEventPrices['short-profile']) {
-      await Actor.pushData(item, 'short-profile');
-    } else {
-      await Actor.pushData(item);
-    }
+    await Actor.pushData(item);
   }
   if (profileScraperMode === ProfileScraperMode.FULL) {
-    await Actor.pushData(item, 'full-profile');
+    pushResult = await Actor.pushData(item, 'full-profile');
   }
   if (profileScraperMode === ProfileScraperMode.EMAIL) {
-    if (perEventPrices['full-profile-with-email']) {
-      if ((payments || []).includes('linkedinProfileWithEmail')) {
-        await Actor.pushData(item, 'full-profile-with-email');
-      } else {
-        await Actor.pushData(item, 'full-profile');
-      }
+    if ((payments || []).includes('linkedinProfileWithEmail')) {
+      pushResult = await Actor.pushData(item, 'full-profile-with-email');
     } else {
-      await Actor.pushData(item, 'full-profile');
-      if (
-        (payments || []).includes('linkedinProfileWithEmail') &&
-        perEventPrices['short-profile']
-      ) {
-        Actor.charge({ eventName: 'short-profile' });
-      }
+      pushResult = await Actor.pushData(item, 'full-profile');
     }
+  }
+
+  if (pushResult?.eventChargeLimitReached) {
+    await Actor.exit({
+      statusMessage: 'max charge reached',
+    });
   }
 };
 
@@ -216,7 +208,6 @@ const scraper = createLinkedinScraper({
     'x-apify-user-left-items': String(state.leftItems),
     'x-apify-user-max-items': String(input.maxItems),
     'x-apify-user-profile-scraper-mode': String(profileScraperMode),
-    'x-apify-per-event-prices': JSON.stringify(perEventPrices),
   },
 });
 
@@ -259,8 +250,11 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   takePages: input.takePages,
   onPageFetched: async ({ data }) => {
     if (data?.pagination && data?.status !== 429) {
-      if (perEventPrices['search-page']) {
-        Actor.charge({ eventName: 'search-page' });
+      const pushResult = await Actor.charge({ eventName: 'search-page' });
+      if (pushResult.eventChargeLimitReached) {
+        await Actor.exit({
+          statusMessage: 'max charge reached',
+        });
       }
     }
   },
@@ -296,7 +290,6 @@ if (!Object.keys(itemQuery).length) {
   await Actor.exit({ statusMessage: 'no query' });
 }
 
-let requestSuccess = false;
 let hitRateLimit = false;
 
 await scraper.scrapeSalesNavigatorLeads({
@@ -307,14 +300,12 @@ await scraper.scrapeSalesNavigatorLeads({
     if (data?.status === 429) {
       console.error('Too many requests');
     } else if (data?.pagination) {
-      requestSuccess = true;
       console.info(
         `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
       );
     }
 
     if (typeof data?.error === 'string' && data.error.includes('No available resource')) {
-      requestSuccess = false;
       hitRateLimit = true;
 
       console.error(
@@ -330,12 +321,6 @@ await scraper.scrapeSalesNavigatorLeads({
     'x-request-timeout': '360',
   },
 });
-
-if (state.scrapedItems <= 10 && requestSuccess) {
-  if (perEventPrices['actor-start']) {
-    Actor.charge({ eventName: 'actor-start' });
-  }
-}
 
 if (userId) {
   totalRuns = Number(await runCounterStore.getValue(userId)) || 0;
