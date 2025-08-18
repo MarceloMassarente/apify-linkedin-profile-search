@@ -242,7 +242,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
             ...profile,
             element: {
               ...profile.element,
-              openProfile: (profile as any).openProfile,
+              openProfile: (item as any).openProfile,
             },
           };
         } else {
