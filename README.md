@@ -4,7 +4,7 @@ Our powerful tool helps you search all LinkedIn Profiles and filter by companies
 
 Unlike other Actors scraping anonymous "LinkedIn member"s from search, this Actor can find and scrape nearly everyone on LinkedIn.
 
-Optionally, our tool can also try to find **email addresses** for LinkedIn profiles, which is ideal for lead generation, recruitment, and networking. We perform comprehensive validation checks, including SMTP checks, to ensure the email addresses are valid and deliverable, resulting in **low bounce rates and high deliverability**. Adaptive cost: if a LinkedIn profile is not complete enough to perform the email search - we will not charge you for the search.
+Optionally, our tool can also try to find **email addresses** for LinkedIn profiles, which is ideal for lead generation, recruitment, and networking. We perform comprehensive validation checks, including SMTP checks, to ensure the email addresses are valid and deliverable, resulting in low bounce rates and high deliverability. Adaptive cost: if a LinkedIn profile is not complete enough to perform the email search - we will not charge you for the search.
 
 ## How It Works
 
@@ -23,14 +23,17 @@ Optionally, our tool can also try to find **email addresses** for LinkedIn profi
 - List of LinkedIn Company URLs where they currently work (e.g., `google`, `meta`, `amazon`)
 - List of LinkedIn Company URLs where they previously worked (e.g., `google`, `meta`, `amazon`)
 - List of LinkedIn School URLs where they studied (e.g., `stanford-university`, `MIT`)
+- List of LinkedIn industry IDs (only numbers). You can find the full list of LinkedIn industry IDs in the [LinkedIn Industries](https://github.com/HarvestAPI/linkedin-industry-codes-v2/blob/main/linkedin_industry_code_v2_all_eng_with_header.csv). For example, `4` is "Software Development", `43` is "Financial Services", etc.
 
 Other params (optionally):
 
+- `startPage` - The page number to start scraping from. Default is 1.
+- `takePages` - The number of pages to scrape. One page is up to 25 results. Maximum is 100 pages (LinkedIn limitation).
 - `maxItems` - Maximum number of profiles to scrape for all queries. If you set to 0, it will scrape all available items or up to 2500 items per search query (LinkedIn doesn't allow to extract more than 2500 per one query).
 
 ## Rate limits
 
-Currently this Actor cannot handle large volumes, due to LinkedIn rate limiting it (we are working on scaling it). 
+Currently this Actor cannot handle large volumes, due to LinkedIn rate limiting it (we are working on scaling it).
 We recommend to have an automation to distribute you workload evenly, so that each hour in a day has nearly the same number of requests (avoiding bursts).  
 We count and reset rate limits hourly, so when it hits rate limits, you can continue scraping at the beginning of the next hour. If it still doesn't fit your volumes, please create an issue and let us know how many search pages you need to scrape per hour, and we will try to scale it for you.
 
@@ -47,14 +50,22 @@ const result1 = await client.actor('harvestapi/linkedin-profile-search').call({
 const { items } = await client.dataset(result1.defaultDatasetId).listItems();
 
 if (result1.statusMessage === 'rate limited') {
-  // we've hit the rate limit. 
-  
+  // we've hit the rate limit.
+
   // await until the next hour
-  await new Promise(resolve => setTimeout(resolve, 3600000 - (new Date().getMinutes() * 60000 + new Date().getSeconds() * 1000 + new Date().getMilliseconds())));
+  await new Promise((resolve) =>
+    setTimeout(
+      resolve,
+      3600000 -
+        (new Date().getMinutes() * 60000 +
+          new Date().getSeconds() * 1000 +
+          new Date().getMilliseconds()),
+    ),
+  );
 
   // continue scraping the next page after the last successfully scraped page
   const lastScrapedPageNumber = items[items.length - 1]?._meta?.pagination?.pageNumber || 0;
-  
+
   const result2 = await client.actor('harvestapi/linkedin-profile-search').call({
     currentJobTitles: ['CEO'],
     startPage: lastScrapedPageNumber + 1,
@@ -64,19 +75,20 @@ if (result1.statusMessage === 'rate limited') {
 ```
 
 Alternatively you can scrape page by page:
+
 ```js
 let currentPage = 1;
 const result = await new ApifyClient({ token: process.env.APIFY_API_KEY })
-  .actor("harvestapi/linkedin-profile-search")
+  .actor('harvestapi/linkedin-profile-search')
   .call({
-    currentJobTitles: ["CEO"],
+    currentJobTitles: ['CEO'],
     startPage: currentPage,
     takePages: 1, // scrape just one page and exit
   });
 
-if (result.statusMessage === "rate limited") {
+if (result.statusMessage === 'rate limited') {
   // await until the next hour and retry this page
-} 
+}
 currentPage++;
 // continue scraping the next page
 ```

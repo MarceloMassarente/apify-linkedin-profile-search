@@ -233,10 +233,14 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
           } as ApiItemResponse<Profile>;
         }
 
-        return scraper.getProfile({
+        const profile = await scraper.getProfile({
           url: `https://www.linkedin.com/in/${item.publicIdentifier || item.id}`,
           findEmail: profileScraperMode === ProfileScraperMode.EMAIL,
         });
+        return {
+          ...profile,
+          openProfile: (profile as any).openProfile,
+        };
       }
 
       return { skipped: true };
