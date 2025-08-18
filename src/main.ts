@@ -237,10 +237,17 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
           url: `https://www.linkedin.com/in/${item.publicIdentifier || item.id}`,
           findEmail: profileScraperMode === ProfileScraperMode.EMAIL,
         });
-        return {
-          ...profile,
-          openProfile: (profile as any).openProfile,
-        };
+        if (profile?.element?.id) {
+          return {
+            ...profile,
+            element: {
+              ...profile.element,
+              openProfile: (profile as any).openProfile,
+            },
+          };
+        } else {
+          return profile;
+        }
       }
 
       return { skipped: true };
