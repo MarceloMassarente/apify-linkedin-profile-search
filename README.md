@@ -31,6 +31,8 @@ Other params (optionally):
 - `takePages` - The number of pages to scrape. One page is up to 25 results. Maximum is 100 pages (LinkedIn limitation).
 - `maxItems` - Maximum number of profiles to scrape for all queries. If you set to 0, it will scrape all available items or up to 2500 items per search query (LinkedIn doesn't allow to extract more than 2500 per one query).
 
+Note: If you need to search by a person's full name, we recommend use our [Profile Search by name](https://apify.com/harvestapi/linkedin-profile-search-by-name) Actor instead, as it is more suitable for that use case. It's much cheaper and doesn't apply rate limits.
+
 ## Rate limits
 
 Currently this Actor cannot handle large volumes, due to LinkedIn rate limiting it (we are working on scaling it).

@@ -92,14 +92,14 @@
       "title": "First Names Filter",
       "type": "array",
       "editor": "stringList",
-      "description": "Filter Profiles by these LinkedIn first names. Example: `John`.",
+      "description": "Filter Profiles by these LinkedIn first names. We recommend using another actor for searches by name: https://apify.com/harvestapi/linkedin-profile-search-by-name",
       "maxItems": 10
     },
     "lastNames": {
       "title": "Last Names Filter",
       "type": "array",
       "editor": "stringList",
-      "description": "Filter Profiles by these LinkedIn last names. Example: `Doe`.",
+      "description": "Filter Profiles by these LinkedIn last names. We recommend using another actor for searches by name: https://apify.com/harvestapi/linkedin-profile-search-by-name",
       "maxItems": 10
     },
 
