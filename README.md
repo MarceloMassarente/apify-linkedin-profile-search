@@ -4,7 +4,7 @@ Our powerful tool helps you search all LinkedIn Profiles and filter by companies
 
 Unlike other Actors scraping anonymous "LinkedIn member"s from search, this Actor can find and scrape nearly everyone on LinkedIn.
 
-Optionally, our tool can also try to find **email addresses** for LinkedIn profiles, which is ideal for lead generation, recruitment, and networking. We perform comprehensive validation checks, including SMTP checks, to ensure the email addresses are valid and deliverable, resulting in low bounce rates and high deliverability. Adaptive cost: if a LinkedIn profile is not complete enough to perform the email search - we will not charge you for the search.
+Optionally, our tool can also try to find **email addresses** for LinkedIn profiles, which is ideal for lead generation, recruitment, and networking. We perform comprehensive validation checks, including SMTP checks, to ensure the email addresses are valid and deliverable. Adaptive cost: if a LinkedIn profile is not complete enough to perform the email search - we will not charge you for the search.
 
 ## How It Works
 
