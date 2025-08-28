@@ -109,8 +109,12 @@ const runCounterStore = await Actor.openKeyValueStore('run-counter-store');
 
 let totalRuns = 0;
 if (userId) {
+  if (!isPaying) {
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 4000));
+  }
   totalRuns = Number(await runCounterStore.getValue(userId)) || 0;
   totalRuns++;
+  await runCounterStore.setValue(userId, totalRuns);
 }
 
 const state: {
@@ -132,10 +136,10 @@ const logFreeUserExceeding = () =>
   );
 
 if (!isPaying) {
-  if (totalRuns > 6) {
+  if (totalRuns > 10) {
     console.warn(
       styleText('bgYellow', ' [WARNING] ') +
-        ' Free users are limited to 6 runs. Please upgrade to a paid plan to run more.',
+        ' Free users are limited to 10 runs. Please upgrade to a paid plan to run more.',
     );
     await Actor.exit();
     process.exit(0);
@@ -258,7 +262,7 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
   overridePageConcurrency: 1,
   warnPageLimit: isPaying,
   startPage: input.startPage,
-  takePages: input.takePages,
+  takePages: isPaying ? input.takePages : 1,
   onPageFetched: async ({ data }) => {
     if (data?.pagination && data?.status !== 429) {
       const pushResult = await Actor.charge({ eventName: 'search-page' });
@@ -332,12 +336,6 @@ await scraper.scrapeSalesNavigatorLeads({
     'x-request-timeout': '360',
   },
 });
-
-if (userId) {
-  totalRuns = Number(await runCounterStore.getValue(userId)) || 0;
-  totalRuns++;
-  await runCounterStore.setValue(userId, totalRuns);
-}
 
 if (isFreeUserExceeding) {
   logFreeUserExceeding();
