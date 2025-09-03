@@ -99,7 +99,7 @@ for (const key of Object.keys(query) as (keyof typeof query)[]) {
       .filter((v) => v && v.length);
   }
   if (typeof query[key] === 'string') {
-    (query[key] as string) = query[key].replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+    (query[key] as string) = query[key].replace(/\s+/g, ' ').trim();
   }
 }
 
