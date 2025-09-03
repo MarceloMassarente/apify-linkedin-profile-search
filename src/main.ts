@@ -53,6 +53,7 @@ interface Input {
   maxItems?: number;
   startPage?: number;
   takePages?: number;
+  salesNavUrl?: string;
 }
 
 // Structure of input is defined in input_schema.json
@@ -77,6 +78,7 @@ const query: {
   firstNames: string[];
   lastNames: string[];
   industryIds?: string[];
+  salesNavUrl?: string;
 } = {
   currentCompanies: input.currentCompanies || [],
   pastCompanies: input.pastCompanies || [],
@@ -87,13 +89,17 @@ const query: {
   firstNames: input.firstNames || [],
   lastNames: input.lastNames || [],
   industryIds: input.industryIds || [],
+  salesNavUrl: input.salesNavUrl,
 };
 
 for (const key of Object.keys(query) as (keyof typeof query)[]) {
   if (Array.isArray(query[key]) && query[key].length) {
-    query[key] = query[key]
+    (query[key] as string[]) = query[key]
       .map((v) => (v || '').replace(/,/g, ' ').replace(/\s+/g, ' ').trim())
       .filter((v) => v && v.length);
+  }
+  if (typeof query[key] === 'string') {
+    (query[key] as string) = query[key].replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
   }
 }
 
