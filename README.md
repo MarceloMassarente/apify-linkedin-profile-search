@@ -33,68 +33,6 @@ Other params (optionally):
 
 Note: If you need to search by a person's full name, we recommend use our [Profile Search by name](https://apify.com/harvestapi/linkedin-profile-search-by-name) Actor instead, as it is more suitable for that use case. It's much cheaper and doesn't apply rate limits.
 
-## Rate limits
-
-Currently this Actor cannot handle large volumes, due to LinkedIn rate limiting it (we are working on scaling it).
-We recommend to have an automation to distribute you workload evenly, so that each hour in a day has nearly the same number of requests (avoiding bursts).  
-We count and reset rate limits hourly, so when it hits rate limits, you can continue scraping at the beginning of the next hour. If it still doesn't fit your volumes, please create an issue and let us know how many search pages you need to scrape per hour, and we will try to scale it for you.
-
-Example of working around rate limits:
-
-```js
-const client = new ApifyClient({ token: process.env.APIFY_API_KEY });
-const result1 = await client.actor('harvestapi/linkedin-profile-search').call({
-  currentJobTitles: ['CEO'],
-  startPage: 1,
-  takePages: 10, // for example, you want to scrape 10 pages
-});
-
-const { items } = await client.dataset(result1.defaultDatasetId).listItems();
-
-if (result1.statusMessage === 'rate limited') {
-  // we've hit the rate limit.
-
-  // await until the next hour
-  await new Promise((resolve) =>
-    setTimeout(
-      resolve,
-      3600000 -
-        (new Date().getMinutes() * 60000 +
-          new Date().getSeconds() * 1000 +
-          new Date().getMilliseconds()),
-    ),
-  );
-
-  // continue scraping the next page after the last successfully scraped page
-  const lastScrapedPageNumber = items[items.length - 1]?._meta?.pagination?.pageNumber || 0;
-
-  const result2 = await client.actor('harvestapi/linkedin-profile-search').call({
-    currentJobTitles: ['CEO'],
-    startPage: lastScrapedPageNumber + 1,
-    takePages: 10 - lastScrapedPageNumber,
-  });
-}
-```
-
-Alternatively you can scrape page by page:
-
-```js
-let currentPage = 1;
-const result = await new ApifyClient({ token: process.env.APIFY_API_KEY })
-  .actor('harvestapi/linkedin-profile-search')
-  .call({
-    currentJobTitles: ['CEO'],
-    startPage: currentPage,
-    takePages: 1, // scrape just one page and exit
-  });
-
-if (result.statusMessage === 'rate limited') {
-  // await until the next hour and retry this page
-}
-currentPage++;
-// continue scraping the next page
-```
-
 ### Data You'll Receive
 
 - Profile summary and headline
@@ -1169,6 +1107,41 @@ Here is the example profile output of this actor:
 ## Linkedin Profile Search API
 
 The actor stores results in a dataset. You can export data in various formats such as CSV, JSON, XLS, etc. You can scrape and access data on demand using API.
+
+## Rate limits
+
+If you need to scrape large volumes (50,000+ profiles), the actor might possibly hit rate LinkedIn's rate limits.
+We recommend to have an automation to distribute you workload evenly, so that each hour in a day has nearly the same number of requests (avoiding bursts).  
+We count and reset rate limits hourly, so when it hits rate limits, you can continue scraping at the beginning of the next hour. If it still doesn't fit your volumes, please create an issue and let us know how many search pages you need to scrape per hour, and we will scale it for you.
+
+Example of working around rate limits:
+
+```js
+const client = new ApifyClient({ token: process.env.APIFY_API_KEY });
+const result1 = await client.actor('harvestapi/linkedin-profile-search').call({
+  currentJobTitles: ['CEO'],
+  startPage: 1,
+  takePages: 10, // for example, you want to scrape 10 pages
+});
+
+const { items } = await client.dataset(result1.defaultDatasetId).listItems();
+
+if (result1.statusMessage === 'rate limited') {
+  // we've hit the rate limit.
+
+  // await until the next hour
+  await new Promise((resolve) => setTimeout(resolve, 3600000 - (new Date().getMinutes() * 60000 + new Date().getSeconds() * 1000 + new Date().getMilliseconds())));
+
+  // continue scraping the next page after the last successfully scraped page
+  const lastScrapedPageNumber = items[items.length - 1]?._meta?.pagination?.pageNumber || 0;
+
+  const result2 = await client.actor('harvestapi/linkedin-profile-search').call({
+    currentJobTitles: ['CEO'],
+    startPage: lastScrapedPageNumber + 1,
+    takePages: 10 - lastScrapedPageNumber,
+  });
+}
+```
 
 ### Support and Feedback
 
