@@ -37,7 +37,7 @@ Note: If you need to search by a person's full name, we recommend use our [Profi
 
 The Actor will print in the how many profiles in total were found for your query. If the total is more than 2500, you won't be able to extract all results. Consider splitting your query into multiple queries applying more filters. For example do multiple runs for locations of specific cities, instead of one run targeting entire country or region.
 
-If you scraped a query partially and want to continue later, you can start a new run from the last scraped search page. Check the Actor's logs and find the last line like this: `Scraped page 10. Found 25 profiles`. Start a new run with specifying `startPage` in the input:
+If you scraped a query partially and want to continue later, you can start a new run from the last scraped search page. Check the Actor's logs and find the last line like this: `Scraped search page 10. Found 25 profiles on the page.`. Start a new run with specifying the next `startPage` in the input:
 
 ```json
 {
