@@ -1,117 +1,29 @@
 // Apify SDK - toolkit for building Apify Actors (Read more at https://docs.apify.com/sdk/js/).
-import {
-  ApiItemResponse,
-  ApiPagination,
-  createLinkedinScraper,
-  Profile,
-  ProfileShort,
-  ScrapeLinkedinSalesNavLeadsParams,
-} from '@harvestapi/scraper';
+import { ApiItemResponse, createLinkedinScraper, Profile } from '@harvestapi/scraper';
 import { Actor } from 'apify';
 import { config } from 'dotenv';
 import { styleText } from 'node:util';
+import { handleInput } from './utils/input.js';
+import { pushItem } from './utils/pushItem.js';
+import { ProfileScraperMode } from './utils/types.js';
 
 config();
 
 // The init() call configures the Actor for its environment. It's recommended to start every Actor with an init().
 await Actor.init();
 
-enum ProfileScraperMode {
-  SHORT,
-  FULL,
-  EMAIL,
-}
-
-const profileScraperModeInputMap1: Record<string, ProfileScraperMode> = {
-  'Short ($4 per 1k)': ProfileScraperMode.SHORT,
-  'Full ($8 per 1k)': ProfileScraperMode.FULL,
-  'Full + email search ($12 per 1k)': ProfileScraperMode.EMAIL,
-
-  Short: ProfileScraperMode.SHORT,
-  Full: ProfileScraperMode.FULL,
-  'Full + email search': ProfileScraperMode.EMAIL,
-};
-const profileScraperModeInputMap2: Record<string, ProfileScraperMode> = {
-  '1': ProfileScraperMode.SHORT,
-  '2': ProfileScraperMode.FULL,
-  '3': ProfileScraperMode.EMAIL,
-};
-
-interface Input {
-  profileScraperMode: string;
-  searchQuery?: string;
-  searchQueries?: string[]; // Deprecated, use searchQuery instead
-  currentCompanies?: string[];
-  pastCompanies?: string[];
-  currentJobTitles?: string[];
-  pastJobTitles?: string[];
-  firstNames?: string[];
-  lastNames?: string[];
-  schools?: string[];
-  locations?: string[];
-  industryIds?: string[];
-  maxItems?: number;
-  startPage?: number;
-  takePages?: number;
-  salesNavUrl?: string;
-}
-
-// Structure of input is defined in input_schema.json
-const input = await Actor.getInput<Input>();
-if (!input) throw new Error('Input is missing!');
-
-const profileScraperMode =
-  profileScraperModeInputMap1[input.profileScraperMode] ??
-  profileScraperModeInputMap2[input.profileScraperMode] ??
-  ProfileScraperMode.FULL;
-
-input.searchQuery =
-  (input.searchQuery || '').trim() || (input.searchQueries || [])[0]?.trim() || '';
-
-const query: {
-  currentCompanies: string[];
-  pastCompanies: string[];
-  schools: string[];
-  location: string[];
-  currentJobTitles: string[];
-  pastJobTitles: string[];
-  firstNames: string[];
-  lastNames: string[];
-  industryIds?: string[];
-  salesNavUrl?: string;
-} = {
-  currentCompanies: input.currentCompanies || [],
-  pastCompanies: input.pastCompanies || [],
-  schools: input.schools || [],
-  location: input.locations || [],
-  currentJobTitles: input.currentJobTitles || [],
-  pastJobTitles: input.pastJobTitles || [],
-  firstNames: input.firstNames || [],
-  lastNames: input.lastNames || [],
-  industryIds: input.industryIds || [],
-  salesNavUrl: input.salesNavUrl,
-};
-
-for (const key of Object.keys(query) as (keyof typeof query)[]) {
-  if (Array.isArray(query[key]) && query[key].length) {
-    (query[key] as string[]) = query[key]
-      .map((v) => (v || '').replace(/,/g, ' ').replace(/\s+/g, ' ').trim())
-      .filter((v) => v && v.length);
-  }
-  if (typeof query[key] === 'string') {
-    (query[key] as string) = query[key].replace(/\s+/g, ' ').trim();
-  }
-}
-
-const { actorId, actorRunId, actorBuildId, userId, actorMaxPaidDatasetItems, memoryMbytes } =
-  Actor.getEnv();
+const { actorId, actorRunId, actorBuildId, userId, memoryMbytes } = Actor.getEnv();
 const client = Actor.newClient();
-
 const user = userId ? await client.user(userId).get() : null;
 const cm = Actor.getChargingManager();
 const pricingInfo = cm.getPricingInfo();
 const isPaying = (user as Record<string, any> | null)?.isPaying === false ? false : true;
 const runCounterStore = await Actor.openKeyValueStore('run-counter-store');
+
+const { profileScraperMode, scraperQuery, isFreeUserExceeding, maxItems, takePages, startPage } =
+  await handleInput({
+    isPaying,
+  });
 
 let totalRuns = 0;
 if (userId) {
@@ -122,19 +34,8 @@ if (userId) {
   totalRuns++;
   await runCounterStore.setValue(userId, totalRuns);
 }
+let hitRateLimit = false;
 
-const state: {
-  leftItems: number;
-  scrapedItems: number;
-} = {
-  scrapedItems: 0,
-  leftItems: actorMaxPaidDatasetItems || 1000000,
-};
-if (input.maxItems && input.maxItems < state.leftItems) {
-  state.leftItems = input.maxItems;
-}
-
-let isFreeUserExceeding = false;
 const logFreeUserExceeding = () =>
   console.warn(
     styleText('bgYellow', ' [WARNING] ') +
@@ -148,56 +49,12 @@ if (!isPaying) {
         ' Free users are limited to 10 runs. Please upgrade to a paid plan to run more.',
     );
     await Actor.exit();
-    process.exit(0);
-  }
-
-  if (state.leftItems > 25) {
-    isFreeUserExceeding = true;
-    state.leftItems = 25;
-    logFreeUserExceeding();
   }
 }
 
-const pushItem = async ({
-  item,
-  payments,
-  pagination,
-}: {
-  item: Profile | ProfileShort;
-  payments: string[];
-  pagination: ApiPagination | null;
-}) => {
-  console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
-  state.scrapedItems += 1;
-
-  item = {
-    ...item,
-    _meta: {
-      pagination,
-    },
-  } as (Profile | ProfileShort) & { _meta: { pagination: ApiPagination | null } };
-
-  let pushResult: { eventChargeLimitReached: boolean } | null = null;
-  if (profileScraperMode === ProfileScraperMode.SHORT) {
-    await Actor.pushData(item);
-  }
-  if (profileScraperMode === ProfileScraperMode.FULL) {
-    pushResult = await Actor.pushData(item, 'full-profile');
-  }
-  if (profileScraperMode === ProfileScraperMode.EMAIL) {
-    if ((payments || []).includes('linkedinProfileWithEmail')) {
-      pushResult = await Actor.pushData(item, 'full-profile-with-email');
-    } else {
-      pushResult = await Actor.pushData(item, 'full-profile');
-    }
-  }
-
-  if (pushResult?.eventChargeLimitReached) {
-    await Actor.exit({
-      statusMessage: 'max charge reached',
-    });
-  }
-};
+if (isFreeUserExceeding) {
+  logFreeUserExceeding();
+}
 
 const scraper = createLinkedinScraper({
   apiKey: process.env.HARVESTAPI_TOKEN!,
@@ -208,33 +65,40 @@ const scraper = createLinkedinScraper({
     'x-apify-actor-run-id': actorRunId!,
     'x-apify-actor-build-id': actorBuildId!,
     'x-apify-memory-mbytes': String(memoryMbytes),
-    'x-apify-actor-max-paid-dataset-items': String(actorMaxPaidDatasetItems) || '0',
     'x-apify-username': user?.username || '',
     'x-apify-user-is-paying': (user as Record<string, any> | null)?.isPaying,
     'x-apify-user-is-paying2': String(isPaying),
     'x-apify-max-total-charge-usd': String(pricingInfo.maxTotalChargeUsd),
     'x-apify-is-pay-per-event': String(pricingInfo.isPayPerEvent),
     'x-apify-user-runs': String(totalRuns),
-    'x-apify-user-left-items': String(state.leftItems),
-    'x-apify-user-max-items': String(input.maxItems),
+    'x-apify-user-max-items': String(maxItems),
     'x-apify-user-profile-scraper-mode': String(profileScraperMode),
   },
 });
 
-const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
+await scraper.scrapeSalesNavigatorLeads({
+  query: scraperQuery,
+  maxItems,
   findEmail: profileScraperMode === ProfileScraperMode.EMAIL,
   outputType: 'callback',
+  disableLog: true,
+  overrideConcurrency: profileScraperMode === ProfileScraperMode.EMAIL ? 10 : 8,
+  overridePageConcurrency: 1,
+  warnPageLimit: isPaying,
+  startPage,
+  takePages: isPaying ? takePages : 1,
+  addListingHeaders: {
+    'x-sub-user': user?.username || '',
+    'x-concurrency': user?.username ? '1' : (undefined as any),
+    'x-queue-size': isPaying ? '30' : '5',
+    'x-request-timeout': '360',
+  },
   onItemScraped: async ({ item, payments, pagination }) => {
-    return pushItem({ item, payments: payments || [], pagination });
+    return pushItem({ item, payments: payments || [], pagination, profileScraperMode });
   },
   optionsOverride: {
     fetchItem: async ({ item }) => {
       if (item?.id || item?.publicIdentifier) {
-        state.leftItems -= 1;
-        if (state.leftItems < 0) {
-          return { skipped: true, done: true };
-        }
-
         if (profileScraperMode === ProfileScraperMode.SHORT && item?.id) {
           return {
             status: 200,
@@ -263,13 +127,26 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
       return { skipped: true };
     },
   },
-  disableLog: true,
-  overrideConcurrency: profileScraperMode === ProfileScraperMode.EMAIL ? 10 : 8,
-  overridePageConcurrency: 1,
-  warnPageLimit: isPaying,
-  startPage: input.startPage,
-  takePages: isPaying ? input.takePages : 1,
-  onPageFetched: async ({ data }) => {
+  onPageFetched: async ({ page, data }) => {
+    if (page === 1) {
+      if (data?.status === 429) {
+        console.error('Too many requests');
+      } else if (data?.pagination) {
+        console.info(
+          `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(scraperQuery)}`,
+        );
+      }
+
+      if (typeof data?.error === 'string' && data.error.includes('No available resource')) {
+        hitRateLimit = true;
+
+        console.error(
+          `We've hit LinkedIn rate limits due to the active usage from our Apify users. Rate limits reset hourly. Please continue at the beginning of the next hour.`,
+        );
+        return;
+      }
+    }
+
     if (data?.pagination && data?.status !== 429) {
       const pushResult = await Actor.charge({ eventName: 'search-page' });
       if (pushResult.eventChargeLimitReached) {
@@ -278,68 +155,9 @@ const scrapeParams: Omit<ScrapeLinkedinSalesNavLeadsParams, 'query'> = {
         });
       }
     }
-  },
-};
-
-if (state.leftItems <= 0) {
-  console.warn(
-    styleText('bgYellow', ' [WARNING] ') +
-      ' No items left to scrape. Please increase the maxItems input or reduce the filters.',
-  );
-  await Actor.exit({ statusMessage: 'no items' });
-}
-
-const itemQuery = {
-  search: input.searchQuery || '',
-  ...query,
-};
-for (const key of Object.keys(itemQuery) as (keyof typeof itemQuery)[]) {
-  if (!itemQuery[key]) {
-    delete itemQuery[key];
-  }
-  if (Array.isArray(itemQuery[key])) {
-    if (!itemQuery[key].length) {
-      delete itemQuery[key];
-    }
-  }
-}
-
-if (!Object.keys(itemQuery).length) {
-  console.warn(
-    'Please provide at least one search query or filter. Nothing to search, skipping...',
-  );
-  await Actor.exit({ statusMessage: 'no query' });
-}
-
-let hitRateLimit = false;
-
-await scraper.scrapeSalesNavigatorLeads({
-  query: itemQuery,
-  ...scrapeParams,
-  maxItems: state.leftItems,
-  onFirstPageFetched: ({ data }) => {
-    if (data?.status === 429) {
-      console.error('Too many requests');
-    } else if (data?.pagination) {
-      console.info(
-        `Found ${data.pagination.totalElements} profiles total for input ${JSON.stringify(itemQuery)}`,
-      );
-    }
-
-    if (typeof data?.error === 'string' && data.error.includes('No available resource')) {
-      hitRateLimit = true;
-
-      console.error(
-        `We've hit LinkedIn rate limits due to the active usage from our Apify users. Rate limits reset hourly. Please continue at the beginning of the next hour.`,
-      );
-    }
-  },
-
-  addListingHeaders: {
-    'x-sub-user': user?.username || '',
-    'x-concurrency': user?.username ? '1' : (undefined as any),
-    'x-queue-size': isPaying ? '30' : '5',
-    'x-request-timeout': '360',
+    console.info(
+      `Scraped search page ${page}. Found ${data?.elements?.length || 0} profiles on the page.`,
+    );
   },
 });
 
@@ -347,6 +165,7 @@ if (isFreeUserExceeding) {
   logFreeUserExceeding();
 }
 
+await new Promise((resolve) => setTimeout(resolve, 1000));
 // Gracefully exit the Actor process. It's recommended to quit all Actors with an exit().
 await Actor.exit({
   statusMessage: hitRateLimit ? 'rate limited' : 'success',
