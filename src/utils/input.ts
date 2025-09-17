@@ -31,6 +31,8 @@ interface Input {
   schools?: string[];
   locations?: string[];
   industryIds?: string[];
+  yearsOfExperienceIds?: string[];
+  yearsAtCurrentCompanyIds?: string[];
   maxItems?: number;
   startPage?: number;
   takePages?: number;
@@ -60,6 +62,8 @@ export async function handleInput({ isPaying }: { isPaying: boolean }) {
     firstNames: string[];
     lastNames: string[];
     industryIds?: string[];
+    yearsOfExperienceIds?: string[];
+    yearsAtCurrentCompanyIds?: string[];
     salesNavUrl?: string;
   } = {
     currentCompanies: input.currentCompanies || [],
@@ -72,6 +76,8 @@ export async function handleInput({ isPaying }: { isPaying: boolean }) {
     lastNames: input.lastNames || [],
     industryIds: input.industryIds || [],
     salesNavUrl: input.salesNavUrl,
+    yearsOfExperienceIds: input.yearsOfExperienceIds || [],
+    yearsAtCurrentCompanyIds: input.yearsAtCurrentCompanyIds || [],
   };
 
   for (const key of Object.keys(query) as (keyof typeof query)[]) {
