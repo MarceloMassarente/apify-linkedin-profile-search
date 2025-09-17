@@ -93,6 +93,19 @@
       ],
       "description": "Filter Profiles by these LinkedIn years of experience IDs. Example: `3` for '3 to 5 years'."
     },
+    "yearsAtCurrentCompanyIds": {
+      "title": "Years at Current Company Filter",
+      "type": "array",
+      "enum": ["1", "2", "3", "4", "5"],
+      "enumTitles": [
+        "Less than 1 year",
+        "1 to 2 years",
+        "3 to 5 years",
+        "6 to 10 years",
+        "More than 10 years"
+      ],
+      "description": "Filter Profiles by these LinkedIn years at current company IDs. Example: `3` for '3 to 5 years'."
+    },
 
     "industryIds": {
       "title": "Industry IDs Filter",
