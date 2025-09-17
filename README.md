@@ -24,6 +24,8 @@ Optionally, our tool can also try to find **email addresses** for LinkedIn profi
 - List of LinkedIn Company URLs where they previously worked (e.g., `google`, `meta`, `amazon`)
 - List of LinkedIn School URLs where they studied (e.g., `stanford-university`, `MIT`)
 - List of LinkedIn industry IDs (only numbers). You can find the full list of LinkedIn industry IDs in the [LinkedIn Industries](https://github.com/HarvestAPI/linkedin-industry-codes-v2/blob/main/linkedin_industry_code_v2_all_eng_with_header.csv). For example, `4` is "Software Development", `43` is "Financial Services", etc.
+- List of total years of experience.
+- List of years at the current company.
 
 Other params (optionally):
 
@@ -1144,7 +1146,15 @@ if (result1.statusMessage === 'rate limited') {
   // we've hit the rate limit.
 
   // await until the next hour
- await new Promise((resolve) => setTimeout(resolve, 3600000 - (new Date().getMinutes() * 60000 + new Date().getSeconds() * 1000 + new Date().getMilliseconds())));
+  await new Promise((resolve) =>
+    setTimeout(
+      resolve,
+      3600000 -
+        (new Date().getMinutes() * 60000 +
+          new Date().getSeconds() * 1000 +
+          new Date().getMilliseconds()),
+    ),
+  );
 
   // continue scraping the next page after the last successfully scraped page
   const lastScrapedPageNumber = items[items.length - 1]?._meta?.pagination?.pageNumber || 0;
