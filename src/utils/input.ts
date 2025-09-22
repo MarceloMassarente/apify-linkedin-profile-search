@@ -33,6 +33,8 @@ interface Input {
   industryIds?: string[];
   yearsOfExperienceIds?: string[];
   yearsAtCurrentCompanyIds?: string[];
+  seniorityLevelIds?: string[];
+  functionIds?: string[];
   maxItems?: number;
   startPage?: number;
   takePages?: number;
@@ -52,24 +54,11 @@ export async function handleInput({ isPaying }: { isPaying: boolean }) {
   input.searchQuery =
     (input.searchQuery || '').trim() || (input.searchQueries || [])[0]?.trim() || '';
 
-  const query: {
-    currentCompanies: string[];
-    pastCompanies: string[];
-    schools: string[];
-    location: string[];
-    currentJobTitles: string[];
-    pastJobTitles: string[];
-    firstNames: string[];
-    lastNames: string[];
-    industryIds?: string[];
-    yearsOfExperienceIds?: string[];
-    yearsAtCurrentCompanyIds?: string[];
-    salesNavUrl?: string;
-  } = {
+  const query: Partial<SearchLinkedInSalesNavLeadsParams> = {
     currentCompanies: input.currentCompanies || [],
     pastCompanies: input.pastCompanies || [],
     schools: input.schools || [],
-    location: input.locations || [],
+    locations: input.locations || [],
     currentJobTitles: input.currentJobTitles || [],
     pastJobTitles: input.pastJobTitles || [],
     firstNames: input.firstNames || [],
@@ -78,6 +67,8 @@ export async function handleInput({ isPaying }: { isPaying: boolean }) {
     salesNavUrl: input.salesNavUrl,
     yearsOfExperienceIds: input.yearsOfExperienceIds || [],
     yearsAtCurrentCompanyIds: input.yearsAtCurrentCompanyIds || [],
+    seniorityLevelIds: input.seniorityLevelIds || [],
+    functionIds: input.functionIds || [],
   };
 
   for (const key of Object.keys(query) as (keyof typeof query)[]) {

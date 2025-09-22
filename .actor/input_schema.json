@@ -105,6 +105,93 @@
       "uniqueItems": true,
       "description": "Filter Profiles by these LinkedIn years at current company IDs. Example: `3` for '3 to 5 years'."
     },
+    "seniorityLevelIds": {
+      "title": "Seniority Level Filter",
+      "type": "array",
+      "editor": "select",
+      "items": {
+        "type": "string",
+        "enum": ["100", "110", "120", "130", "200", "210", "220", "300", "310", "320"],
+        "enumTitles": [
+          "In Training",
+          "Entry Level",
+          "Senior",
+          "Strategic",
+          "Entry Level Manager",
+          "Experienced Manager",
+          "Director",
+          "Vice President",
+          "CXO",
+          "Owner / Partner"
+        ]
+      },
+      "description": "Filter Profiles by these LinkedIn seniority level IDs. Example: `120` for 'Senior'."
+    },
+    "functionIds": {
+      "title": "Function Filter",
+      "type": "array",
+      "editor": "select",
+      "items": {
+        "type": "string",
+        "enum": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20",
+          "21",
+          "22",
+          "23",
+          "24",
+          "25",
+          "26"
+        ],
+        "enumTitles": [
+          "Accounting",
+          "Administrative",
+          "Arts and Design",
+          "Business Development",
+          "Community and Social Services",
+          "Consulting",
+          "Education",
+          "Engineering",
+          "Entrepreneurship",
+          "Finance",
+          "Healthcare Services",
+          "Human Resources",
+          "Information Technology",
+          "Legal",
+          "Marketing",
+          "Media and Communication",
+          "Military and Protective Services",
+          "Operations",
+          "Product Management",
+          "Program and Project Management",
+          "Purchasing",
+          "Quality Assurance",
+          "Real Estate",
+          "Research",
+          "Sales",
+          "Customer Success and Support"
+        ]
+      },
+      "description": "Filter Profiles by these LinkedIn function IDs. Example: `8` for 'Engineering'."
+    },
 
     "industryIds": {
       "title": "Industry IDs Filter",
