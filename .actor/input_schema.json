@@ -8,14 +8,13 @@
       "type": "string",
       "enum": ["Short", "Full", "Full + email search"],
       "description": "Choose the mode for scraping LinkedIn profiles. The Short mode provides basic information, while the Full mode includes full detailed profile data.",
-      "prefill": "Full"
+      "default": "Full"
     },
     "searchQuery": {
       "title": "Search query (fuzzy search)",
       "description": "Query to search LinkedIn profiles. (e.g., `Founder`, `Marketing Manager`, `John Doe`). [The query supports search operators](https://www.linkedin.com/help/linkedin/answer/a524335)",
       "type": "string",
-      "editor": "textfield",
-      "prefill": "Founder"
+      "editor": "textfield"
     },
     "maxItems": {
       "title": "Maximum number of profiles to scrape",
@@ -30,7 +29,6 @@
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn locations. Example: `San Francisco`. LinkedIn does not always understand your text queries. For example for \"UK\" query it will apply \"Ukraine\" location, so you should use \"United Kingdom\" in this case. Try this out first in the location filter input of LinkedIn search at `https://www.linkedin.com/search/results/people/?geoUrn=%5B%22103644278%22%5D` - we will use the first suggestion from the autocomplete popup when you type your location",
-      "prefill": ["New York", "California"],
       "maxItems": 40
     },
 
@@ -46,11 +44,7 @@
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn past companies. Provide full LinkedIn URLs",
-      "maxItems": 40,
-      "prefill": [
-        "https://www.linkedin.com/company/google",
-        "https://www.linkedin.com/company/microsoft"
-      ]
+      "maxItems": 40
     },
 
     "schools": {
@@ -58,11 +52,7 @@
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn schools. Example: `Stanford University`.",
-      "maxItems": 40,
-      "prefill": [
-        "https://www.linkedin.com/school/stanford-university",
-        "https://www.linkedin.com/school/mit"
-      ]
+      "maxItems": 40
     },
 
     "currentJobTitles": {
