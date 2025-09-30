@@ -56,7 +56,7 @@
     },
 
     "currentJobTitles": {
-      "title": "Current Job Title Filter (exact search)",
+      "title": "Current Job Title Filter",
       "type": "array",
       "editor": "stringList",
       "description": "Filter Profiles by these LinkedIn current job titles. Example: `Software Engineer`.",

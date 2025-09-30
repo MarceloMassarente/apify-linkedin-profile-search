@@ -4,15 +4,13 @@ Our powerful tool helps you search all LinkedIn Profiles and filter by companies
 
 Unlike other Actors scraping anonymous "LinkedIn member"s from search, this Actor can find and scrape nearly everyone on LinkedIn.
 
-Optionally, our tool can also try to find **email addresses** for LinkedIn profiles, which is ideal for lead generation, recruitment, and networking. We perform comprehensive validation checks, including SMTP checks, to ensure the email addresses are valid and deliverable. Adaptive cost: if a LinkedIn profile is not complete enough to perform the email search - we will not charge you for the search.
-
 ## How It Works
 
 1. Choose Profile Scraper Mode
 
 - Short. The Actor will be scraping only search pages and will output only basic profile data. One search page is up to 25 results (short profiles).
 - Full. Additionally to scraping search pages, it will open profile links for each of the short profiles found on search page, and scrape all profile details as well.
-- Full + email search. Additionally to Full profiles, it will try to find email addresses for the profiles.
+- Full + email search. Additionally to Full profiles, it will try to find email addresses for the profiles. **See details below**.
 
 2. Provide any combination of the following search parameters to find LinkedIn profiles:
 
@@ -34,6 +32,11 @@ Other params (optionally):
 - `maxItems` - Maximum number of profiles to scrape for all queries. If you set to 0, it will scrape all available items or up to 2500 items per search query. LinkedIn doesn't allow to extract more than 2500 per one query.
 
 Note: If you need to search by a person's full name, we recommend use our [Profile Search by name](https://apify.com/harvestapi/linkedin-profile-search-by-name) Actor instead, as it is more suitable for that use case. It's much cheaper and doesn't apply rate limits.
+
+#### Email search
+
+By selecting the "Full + email search" mode, you can enable our tool to perform email search for LinkedIn profiles, which is ideal for lead generation, recruitment, and networking. We perform comprehensive validation checks, including SMTP checks, to ensure the email addresses are valid and deliverable. Adaptive cost: if a LinkedIn profile is not complete enough to perform the email search - we will not charge you for the search.  
+Important Note: The scraper cannot extract emails directly from a LinkedIn profile as this information is not publicly available on the platform. The email search is performed independently and **it is not guaranteed to find an email for every profile.**
 
 3. Run the Actor
 
