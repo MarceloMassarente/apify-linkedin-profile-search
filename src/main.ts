@@ -93,7 +93,7 @@ await scraper.scrapeSalesNavigatorLeads({
   findEmail: profileScraperMode === ProfileScraperMode.EMAIL,
   outputType: 'callback',
   disableLog: true,
-  overrideConcurrency: profileScraperMode === ProfileScraperMode.EMAIL ? 10 : 8,
+  overrideConcurrency: 15,
   overridePageConcurrency: 1,
   warnPageLimit: isPaying,
   startPage: state.scrapedPageNumber || startPage || 1,
