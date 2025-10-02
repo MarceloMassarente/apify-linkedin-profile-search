@@ -52,6 +52,17 @@ if (!isPaying) {
   }
 }
 
+const state: {
+  scrapedPageNumber?: number;
+} = (await Actor.getValue('crawling-state')) || {
+  scrapedPageNumber: undefined,
+};
+
+Actor.on('migrating', async () => {
+  await Actor.setValue('crawling-state', state);
+  await Actor.reboot();
+});
+
 if (isFreeUserExceeding) {
   logFreeUserExceeding();
 }
@@ -85,7 +96,7 @@ await scraper.scrapeSalesNavigatorLeads({
   overrideConcurrency: profileScraperMode === ProfileScraperMode.EMAIL ? 10 : 8,
   overridePageConcurrency: 1,
   warnPageLimit: isPaying,
-  startPage,
+  startPage: state.scrapedPageNumber || startPage || 1,
   takePages: isPaying ? takePages : 1,
   addListingHeaders: {
     'x-sub-user': user?.username || '',
@@ -153,6 +164,9 @@ await scraper.scrapeSalesNavigatorLeads({
         await Actor.exit({
           statusMessage: 'max charge reached',
         });
+      } else {
+        state.scrapedPageNumber = page;
+        await Actor.setValue('crawling-state', state);
       }
     }
     console.info(
