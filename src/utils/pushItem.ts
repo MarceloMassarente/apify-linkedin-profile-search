@@ -14,7 +14,7 @@ export async function pushItem({
   profileScraperMode: ProfileScraperMode;
 }) {
   console.info(`Scraped profile ${item.linkedinUrl || item?.publicIdentifier || item?.id}`);
-
+  
   item = {
     ...item,
     _meta: {
@@ -22,24 +22,6 @@ export async function pushItem({
     },
   } as (Profile | ProfileShort) & { _meta: { pagination: ApiPagination | null } };
 
-  let pushResult: { eventChargeLimitReached: boolean } | null = null;
-  if (profileScraperMode === ProfileScraperMode.SHORT) {
-    await Actor.pushData(item);
-  }
-  if (profileScraperMode === ProfileScraperMode.FULL) {
-    pushResult = await Actor.pushData(item, 'full-profile');
-  }
-  if (profileScraperMode === ProfileScraperMode.EMAIL) {
-    if ((payments || []).includes('linkedinProfileWithEmail')) {
-      pushResult = await Actor.pushData(item, 'full-profile-with-email');
-    } else {
-      pushResult = await Actor.pushData(item, 'full-profile');
-    }
-  }
-
-  if (pushResult?.eventChargeLimitReached) {
-    await Actor.exit({
-      statusMessage: 'max charge reached',
-    });
-  }
+  // Removido sistema de cobrança - actor privado
+  await Actor.pushData(item);
 }
