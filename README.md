@@ -1,4 +1,4 @@
-## LinkedIn Profile Search Mass scraper
+## LinkedIn Profile Search Mass scraper - Company x Title focus
 
 Our powerful tool helps you search all LinkedIn Profiles and filter by companies, job titles, locations and more without compromising security or violating platform policies.
 
