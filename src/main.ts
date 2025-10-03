@@ -159,16 +159,11 @@ await scraper.scrapeSalesNavigatorLeads({
     }
 
     if (data?.pagination && data?.status !== 429) {
-      const pushResult = await Actor.charge({ eventName: 'search-page' });
-      if (pushResult.eventChargeLimitReached) {
-        await Actor.exit({
-          statusMessage: 'max charge reached',
-        });
-      } else {
-        state.scrapedPageNumber = page;
-        await Actor.setValue('crawling-state', state);
-      }
+      // Sistema de cobrança removido - actor privado
+      state.scrapedPageNumber = page;
+      await Actor.setValue('crawling-state', state);
     }
+    
     console.info(
       `Scraped search page ${page}. Found ${data?.elements?.length} profiles on the page.`,
     );
